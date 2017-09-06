@@ -12,6 +12,8 @@ It computes the following:
 - HiC-Spector (http://github.com/gersteinlab/HiC-spector)
 - QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive)
 
+[[https://github.com/kundajelab/3DChromatin_ReplicateQC/blob/master/Fig1_outline_2017_08_23.png]]
+
 This repository with a unified framework for running the QC and reproducibility methods above was put together by Oana Ursu. Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository. 
 
 
