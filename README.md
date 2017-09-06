@@ -85,7 +85,7 @@ To analyze multiple pairs of contact maps (or multiple contact maps if just comp
 Parameters file
 ======
 
-The parameters file specifies the parameters to be used with 3DChromatin_ReplicateQC. The format of the file is: `method_name parameter_name parameter_value`. The default parameters file used by GenomeDISCO is:
+The parameters file specifies the parameters to be used with 3DChromatin_ReplicateQC. The format of the file is: `method_name parameter_name parameter_value`. The default parameters file used by 3DChromatin_ReplicateQC is:
 
 ```
 GenomeDISCO	subsampling	lowest
