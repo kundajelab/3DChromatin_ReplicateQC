@@ -14,9 +14,6 @@ It computes the following:
 
 ![ScreenShot](https://github.com/kundajelab/3DChromatin_ReplicateQC/blob/master/Fig1_outline_2017_08_23.png)
 
-This repository with a unified framework for running the QC and reproducibility methods above was put together by Oana Ursu. Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository. 
-
-
 Installation
 =====
 
@@ -101,8 +98,10 @@ HiC-Spector	n	20
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
-More questions?
+More questions about this repository?
 ====
 Contact Oana Ursu
 
 oursu@stanford.edu
+
+Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository.
