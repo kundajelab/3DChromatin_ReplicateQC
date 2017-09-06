@@ -91,13 +91,13 @@ Parameters file
 The parameters file specifies the parameters to be used with 3DChromatin_ReplicateQC. The format of the file is: `method_name parameter_name parameter_value`. The default parameters file used by GenomeDISCO is:
 
 ```
-GenomeDISCO		subsampling	lowest
-GenomeDISCO				tmin		3
-GenomeDISCO						tmax		3
-GenomeDISCO								norm		sqrtvc
-HiCRep  h       5
-HiCRep  maxdist 5000000
-HiC-Spector		n			20
+GenomeDISCO	subsampling	lowest
+GenomeDISCO	tmin		3
+GenomeDISCO	tmax	3
+GenomeDISCO	norm	sqrtvc
+HiCRep		h	5
+HiCRep		maxdist	5000000
+HiC-Spector	n	20
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
