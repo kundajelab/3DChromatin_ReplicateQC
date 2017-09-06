@@ -1,0 +1,7 @@
+GenomeDISCO	subsampling	lowest
+GenomeDISCO	tmin	3
+GenomeDISCO	tmax	3
+GenomeDISCO	norm	sqrtvc
+HiCRep	h	5
+HiCRep	maxdist	5000000
+HiC-Spector	n	20
