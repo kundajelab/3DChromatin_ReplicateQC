@@ -51,12 +51,6 @@ Output
 ======
 The scores are summarized in the output directory under `results/summary/`.
 
-For detailed explanations of all inputs to 3DChromatin_ReplicateQC, see the ["Inputs" section below](#inputs)
-
-To run reproducibility analysis in batches (more than one comparison), all you need to do is modify the `--metadata_samples` and `--metadata_pairs` to add the additional samples and sample pairs respectively that you wish to compare. For details, see ["Analyzing multiple dataset pairs"](#analyzing-multiple-dataset-pairs)
-
-By default all methods are run. If you want to run a subset of methods, you can provide them as a comma-delimited list; for instance to run QuASAR-QC and QuASAR-Rep, you would set `--methods QuASAR-QC,QuASAR-Rep`.
-
 Inputs
 =============
 Before running 3DChromatin_ReplicateQC, make sure to have the following files:
