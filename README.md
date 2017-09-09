@@ -10,7 +10,7 @@ It computes the following:
 - HiCRep (http://github.com/qunhualilab/hicrep)
 - GenomeDISCO (http://github.com/kundajelab/genomedisco)
 - HiC-Spector (http://github.com/gersteinlab/HiC-spector)
-- QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive)
+- QuASAR-Rep (part of the hifive suite at http://github.com/bxlab/hifive)
 
 ![ScreenShot](https://github.com/kundajelab/3DChromatin_ReplicateQC/blob/master/Fig1_outline_2017_08_23.png)
 
