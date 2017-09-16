@@ -17,6 +17,8 @@ It computes the following:
 Installation
 =====
 
+1. Install [Anaconda](https://www.continuum.io/downloads). 3DChromatin_ReplicateQC is compatible with Python 2. Run the installation script as below:
+
 ```
 git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
 cd 3DChromatin_ReplicateQC
