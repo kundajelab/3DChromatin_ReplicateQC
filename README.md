@@ -17,7 +17,7 @@ It computes the following:
 Installation
 =====
 
-1. Install [Anaconda](https://www.continuum.io/downloads). 3DChromatin_ReplicateQC is compatible with Python 2.
+1. Install [Anaconda](https://www.continuum.io/downloads), contains python as well as a set of commonly used packegs. 3DChromatin_ReplicateQC is compatible with Python 2.
 
 2. Run the installation script as below:
 
@@ -26,7 +26,7 @@ git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
 cd 3DChromatin_ReplicateQC
 install_scripts/install_3DChromatin_ReplicateQC.sh
 ```
-**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation, R installation, R library, modules and bedtools installation. Thus, you can run the above script as follows:
+**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library, modules and bedtools installation. Thus, you can run the above script as follows:
 
 ```
 install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /path/to/your/python --pathtor /path/to/your/R --rlib /path/to/your/Rlibrary --modules modulename --pathtobedtools path/to/your/bedtools
