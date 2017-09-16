@@ -58,7 +58,7 @@ pythondir=$(dirname ${PATHTOPYTHON})
 
 #get genomedisco
 #===================
-git clone http://github.com/kundajelab/genomedisco ${repo_dir}/software/genomedisco
+git clone https://github.com/kundajelab/genomedisco.git ${repo_dir}/software/genomedisco
 rlibtext=""
 if [[ ${RLIB} != "" ]];
 then
@@ -93,10 +93,13 @@ then
 else
     libtext=",lib=\"${RLIB}\""
 fi
-cmd="${PATHTOR} -e 'source(\"https://bioconductor.org/biocLite.R\");biocLite(\"hicrep\"${libtext})'"
+
+cmd="${PATHTOR}script install_R_packages.R"
 eval "${cmd}"
-cmd="${PATHTOR} -e 'install.packages(\"reshape2\"${libtext},repos=\"http://cran.rstudio.com/\")'"
-eval "${cmd}"
+#cmd="${PATHTOR} -e 'source(\"https://bioconductor.org/biocLite.R\");biocLite(\"hicrep\"${libtext})'"
+#eval "${cmd}"
+#cmd="${PATHTOR} -e 'install.packages(\"reshape2\"${libtext},repos=\"http://cran.rstudio.com/\")'"
+#eval "${cmd}"
 
 #HiC-Spector
 #===========
@@ -106,7 +109,9 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 #======
 git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 cd ${repo_dir}/software/hifive
-${pythondir}/python setup.py install
+${pythondir}/python setup.py install --user
+${pythondir}/pip install h5py
+${pythondir}/conda install -c anaconda mpi4py
 
 #==================
 #make a bashrc file
