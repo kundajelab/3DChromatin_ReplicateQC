@@ -93,7 +93,7 @@ else
     libtext=",lib=\"${RLIB}\""
 fi
 
-cmd="${PATHTOR}script install_R_packages.R"
+cmd="${PATHTOR}script ${dir_of_script}/install_R_packages.R"
 eval "${cmd}"
 #cmd="${PATHTOR} -e 'source(\"https://bioconductor.org/biocLite.R\");biocLite(\"hicrep\"${libtext})'"
 #eval "${cmd}"
