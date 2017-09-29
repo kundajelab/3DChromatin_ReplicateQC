@@ -54,7 +54,9 @@ do
     module load ${modulename}
 done
 
-pythondir=$(dirname ${PATHTOPYTHON})
+#pythondir=$(dirname ${PATHTOPYTHON})
+pythondir=$(echo ${PATHTOPYTHON} | sed 's/\/bin\///g')
+pythondir=${pythondir}/bin
 
 #get genomedisco
 #===================
@@ -79,9 +81,6 @@ fi
 
 #install genomedisco
 ${repo_dir}/software/genomedisco/install_scripts/install_genomedisco.sh --pathtopython ${PATHTOPYTHON} --pathtor ${PATHTOR} ${rlibtext} ${bedtoolstext} ${modulestext}
-
-#install other software
-pythondir=$(dirname ${PATHTOPYTHON})
 
 #hicrep
 #======
