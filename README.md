@@ -26,10 +26,18 @@ git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
 cd 3DChromatin_ReplicateQC
 install_scripts/install_3DChromatin_ReplicateQC.sh
 ```
-**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library, modules and bedtools installation. Thus, you can run the above script as follows:
+**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library, modules and bedtools installation. Thus, you can run the above script as described in the following example.
 
+Assume the following:
+- path to your anaconda installation of python is `/home/my_anaconda2/bin/python`
+- path to your R installation is `/home/my_R/bin/R`
+- path to your R libraries is `/home/my_R_libraries`
+- path to your bedtools installation is `/home/my_bedtools/bin/bedtools`
+- you wish to load any modules that could be loaded as `module load <module name>`
+
+Then, your installation command would look like:
 ```
-install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /path/to/your/python --pathtor /path/to/your/R --rlib /path/to/your/Rlibrary --modules modulename --pathtobedtools path/to/your/bedtools
+install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --pathtobedtools /home/my_bedtools/bin/bedtools --modules module1,module2` 
 ```
 
 Quick start
