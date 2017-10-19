@@ -16,6 +16,7 @@ It computes the following:
 
 Installation
 =====
+1. Make sure you have R>=3.4.0 (needed for HiCRep).
 
 1. Install [Anaconda2](https://www.continuum.io/downloads), which contains python as well as a set of commonly used packages. 3DChromatin_ReplicateQC is compatible with Python 2.
 

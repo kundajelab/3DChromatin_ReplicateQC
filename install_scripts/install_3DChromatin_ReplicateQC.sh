@@ -94,10 +94,10 @@ fi
 
 cmd="${PATHTOR}script ${dir_of_script}/install_R_packages.R"
 eval "${cmd}"
-#cmd="${PATHTOR} -e 'source(\"https://bioconductor.org/biocLite.R\");biocLite(\"hicrep\"${libtext})'"
-#eval "${cmd}"
-#cmd="${PATHTOR} -e 'install.packages(\"reshape2\"${libtext},repos=\"http://cran.rstudio.com/\")'"
-#eval "${cmd}"
+cmd="${PATHTOR} -e 'source(\"https://bioconductor.org/biocLite.R\");biocLite(\"hicrep\"${libtext})'"
+eval "${cmd}"
+cmd="${PATHTOR} -e 'install.packages(\"reshape2\"${libtext},repos=\"http://cran.rstudio.com/\")'"
+eval "${cmd}"
 
 #HiC-Spector
 #===========
@@ -107,9 +107,10 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 #======
 git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 cd ${repo_dir}/software/hifive
-${pythondir}/python setup.py install --user
+${pythondir}/python setup.py install
 ${pythondir}/pip install h5py
 ${pythondir}/conda install -c anaconda mpi4py
+git checkout encode_paper
 
 #==================
 #make a bashrc file
