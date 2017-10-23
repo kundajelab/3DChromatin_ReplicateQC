@@ -108,6 +108,7 @@ GenomeDISCO	norm	sqrtvc
 HiCRep		h	5
 HiCRep		maxdist	5000000
 HiC-Spector	n	20
+QuASAR	rebinning	resolution
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
