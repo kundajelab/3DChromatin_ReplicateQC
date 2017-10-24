@@ -263,7 +263,7 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode):
     script_comparison.write(repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
-    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+' '+sample1name+' '+sample2name+'\n')
+    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
 
