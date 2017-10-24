@@ -133,11 +133,11 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
         script_forquasar.write('rm '+full_dataset+'\n')
         
         #make project
-        script_forquasar.write('${mypython} -c "import hifive; hic=hifive.HiC(\''+quasar_project+'\',\'w\'); hic.load_data(\''+quasar_output+'\');hic.filter_fends(mininteractions=1); hic.save()"'+'\n')
+        script_forquasar.write('${mypython} -c "import hifive; hic=hifive.HiC(\''+quasar_project+'\',\'w\'); hic.load_data(\''+quasar_output+'\'); hic.save()"'+'\n')
 
         #quasar tranformation
         
-        script_forquasar.write('${mypython} '+repo_dir+'/software/hifive/bin/find_quasar_transform '+quasar_project+' '+quasar_transform+' -r '+rebinning+'\n')
+        script_forquasar.write(repo_dir+'/software/hifive/bin/hifive quasar -p '+quasar_project+' '+quasar_transform+' -r '+rebinning+'\n')
 
         #plot the quasar transformation
         #script_forquasar.write('${mypython} '+repo_dir+'/wrappers/QuASAR/plot_quasar_transform.py --transform '+quasar_transform+' --out '+quasar_transform+'\n')
@@ -260,10 +260,10 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode):
     quasar_data=outdir+'/data/forQuASAR'
     quasar_transform1=quasar_data+'/'+samplename1+'.quasar_transform'
     quasar_transform2=quasar_data+'/'+samplename2+'.quasar_transform'
-    script_comparison.write('${mypython} '+repo_dir+"/software/hifive/bin/find_quasar_replicate_score"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n') 
+    script_comparison.write(repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
-    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+'\n')
+    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+' '+sample1name+' '+sample2name+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
 
@@ -277,7 +277,7 @@ def quasar_qc_wrapper(outdir,parameters,samplename,running_mode):
     quasar_data=outdir+'/data/forQuASAR'
     quasar_transform=quasar_data+'/'+samplename+'.quasar_transform'
     subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(outpath)])
-    script_comparison.write('${mypython} '+repo_dir+"/software/hifive/bin/find_quasar_quality_score"+' '+quasar_transform+' '+outpath+'\n')
+    script_comparison.write(repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform+' -o '+outpath+'\n')
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes_qc.py"+' '+outpath+' '+samplename+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
