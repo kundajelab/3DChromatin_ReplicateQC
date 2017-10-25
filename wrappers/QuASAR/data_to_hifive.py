@@ -27,13 +27,13 @@ class Encode_Data(hifive.HiCData):
             self.binned = True
             f = self.fends['bins'][...]
             for i in range(f.shape[0]):
-                idx2index[f['idx'][i]] = (f['chr'][i], i)
+                idx2index[(f['chr'][i], f['idx'][i])] = i
             chr_indices = self.fends['bin_indices'][...]
         else:
             self.binned = False
             f = self.fends['fends'][...]
             for i in range(f.shape[0]):
-                idx2index[f['idx'][i]] = (f['chr'][i], i)
+                idx2index[(f['chr'][i], f['idx'][i])] = i
             chr_indices = self.fends['chr_indices'][...]
         if 'fends' in self.fends and self.fends['fends'] is not None:
             self.re = True
@@ -76,8 +76,10 @@ class Encode_Data(hifive.HiCData):
             for line in input:
                 temp = line.strip('\n').split('\t')
                 try:
-                    chrint1, bin1 = idx2index[int(temp[1])]
-                    chrint2, bin2 = idx2index[int(temp[3])]
+                    chrint1 = self.chr2int[temp[0].lstrip('chr')]
+                    chrint2 = self.chr2int[temp[2].lstrip('chr')]
+                    bin1 = idx2index[(chrint1, int(temp[1]))]
+                    bin2 = idx2index[(chrint2, int(temp[3]))]
                     count = int(temp[4])
                 except:
                     continue

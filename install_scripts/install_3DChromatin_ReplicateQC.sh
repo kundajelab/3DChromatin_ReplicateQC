@@ -103,7 +103,7 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 #======
 git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 cd ${repo_dir}/software/hifive
-git checkout encode_paper
+git checkout v1.5.2
 ${pythondir}/python setup.py install
 ${pythondir}/pip install h5py
 ${pythondir}/conda install -c anaconda mpi4py
