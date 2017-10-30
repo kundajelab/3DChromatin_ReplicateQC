@@ -112,10 +112,39 @@ QuASAR	rebinning	resolution
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
+Here are details about setting these parameters:
+- `GenomeDISCO subsampling` This allows subsampling the datasets to a specific desired sequencing depth. Possible values are: `lowest` (subsample to the depth of the sample with the lower sequencing depth from the pair being compared), `<samplename>` where <samplename> is the name of the sample that is used to determine the sequencing depth to subsample from. 
+
+- `GenomeDISCO|tmin` The minimum number of steps of random walk to perform. Integer, > 0.
+
+- `GenomeDISCO|tmax` The max number of steps of random walk to perform. Integer, > tmin.
+ 
+- `GenomeDISCO|norm` The normalization to use on the data when running GenomeDISCO. Possible values include: `uniform` (no normalization), `sqrtvc`.
+
+- `HiCRep|h` The h parameter in HiCRep that determines the extent of 2D smoothing. See the HiCRep paper (http://genome.cshlp.org/content/early/2017/08/30/gr.220640.117) for details. Integer, >=0.
+
+- `HiCRep|maxdist` The maximum distance to consider when computing the HiCRep score. Integer, should be a amultiple of the resolution of the data.
+
+- `HiC-Spector|n` The number of eigenvectors to use for HiC-Spector. Integer, > 0.
+
+- `QuASAR|rebinning` The rebinning distance. See the QuASAR paper (https://www.biorxiv.org/content/early/2017/10/17/204438) for details. Integer.
+
+*Note about normalization*: At the moment, the different methods operate on different types of normalizations. For GenomeDISCO, the user can specify the desired normalization. For HiCRep and HiC-Spector the scores are computed on the provided data, without normalization.
+Thus, if you have normalized data, then you can provide that as an input, and set `GenomeDISCO|norm` to uniform. If you have raw data, then your HiCRep and HiC-Spector scores will be run on the raw data, and GenomeDISCO will be run on the normalization you specify with `GenomeDISCO|norm`.
+
 More questions about this repository?
 ====
 Contact Oana Ursu
 
 oursu@stanford.edu
 
-Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository.
+Thanks
+===
+*Code*
+This repository was put together by Oana Ursu. Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository.
+
+*Testing*
+Thanks to the Noble lab (Gurkan Yardminci, Jie Liu, Charles Grant), as well as Michael Sauria for testing the code out and for suggestions for improvement.
+
+*docker* (coming soon)
+Thanks to Anna Shcherbina for help making this code dockerized.
