@@ -72,7 +72,7 @@ def parse_args():
                                            parents=[metadata_samples_parser,metadata_pairs_parser,bins_parser,re_fragments_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser],
                             help='(step 3) create html report of the results')
 
-    cleanup_parser=subparsers.add_parser('cleanup',parents=[outdir_parser,methods_parser],
+    cleanup_parser=subparsers.add_parser('cleanup',parents=[outdir_parser],
                                          help='(step 4) clean up files')
 
     args = vars(parser.parse_args())
@@ -396,11 +396,10 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
 
     #compile scores across methods per chromosome, + genomewide
     scores={}
-    subp.check_output(['bash','-c','mkdir -p '+outdir+'/results/summary'])
+    subp.check_output(['bash','-c','mkdir -p '+outdir+'/scores'])
     if methods_list==['all']:
         methods_list=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep','QuASAR-QC']
     for method in methods_list:
-        subp.check_output(['bash','-c','mkdir -p '+outdir+'/results/summary/'+method])
         if method=="QuASAR-QC":
             continue
         scores[method]={}
@@ -416,10 +415,10 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
             
                 pair_text=chromo+'.'+samplename1+'.vs.'+samplename2+'.scores.txt'
                 current_score=float(open(outdir+'/results/reproducibility/'+samplename1+'.vs.'+samplename2+'/'+method+'/'+pair_text,'r').readlines()[0].strip().split('\t')[2])
-                scores[method][samplename1+'.vs.'+samplename2][chromo]=current_score
-                if 'genomewide_list' not in scores[method][samplename1+'.vs.'+samplename2].keys():
-                    scores[method][samplename1+'.vs.'+samplename2]['genomewide_list']=[]
-                scores[method][samplename1+'.vs.'+samplename2]['genomewide_list'].append(current_score)
+                scores[method][samplename1+'.vs.'+samplename2][chromo]=[current_score]
+                if 'genomewide' not in scores[method][samplename1+'.vs.'+samplename2].keys():
+                    scores[method][samplename1+'.vs.'+samplename2]['genomewide']=[]
+                scores[method][samplename1+'.vs.'+samplename2]['genomewide'].append(current_score)
 
     for method in methods_list:
         if method=='QuASAR-QC' or 'all' in methods_list:
@@ -428,41 +427,37 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                 items=line.strip().split()
                 samplename=items[0]
                 scores['QuASAR-QC'][samplename]={}
-                scores['QuASAR-QC'][samplename]['genomewide_list']=[]
+                scores['QuASAR-QC'][samplename]['genomewide']=[]
                 for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
                     chromo=chromo_line.strip()
                     if subset_chromosomes!='NA':
                         if chromo not in subset_chromosomes.split(','):
                             continue
                     current_score=float(open(outdir+'/results/qc/'+samplename+'/'+method+'/'+chromo+'.'+samplename+'.scores.txt','r').readlines()[0].strip().split('\t')[1])
-                    scores['QuASAR-QC'][samplename]['genomewide_list'].append(current_score)
-                    scores['QuASAR-QC'][samplename][chromo]=current_score
-        
-    for method in methods_list:
-        if method=='QuASAR-QC':
-            continue
-        for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
-            chromo=chromo_line.strip()
-            if subset_chromosomes!='NA':
-                if chromo not in subset_chromosomes.split(','):
-                    continue
-            chromofile=open(outdir+'/results/summary/'+method+'/'+method+'.'+chromo+'.txt','w')
-            chromofile.write('#Sample1\tSample2\tScore'+'\n')
-            for line in open(metadata_pairs,'r').readlines():
-                items=line.strip().split()
-                samplename1,samplename2=items[0],items[1]
-                chromofile.write(samplename1+'\t'+samplename2+'\t'+str(scores[method][samplename1+'.vs.'+samplename2][chromo])+'\n')
-            chromofile.close()
+                    scores['QuASAR-QC'][samplename]['genomewide'].append(current_score)
+                    scores['QuASAR-QC'][samplename][chromo]=[current_score]
 
-        genomewide_file=open(outdir+'/results/summary/'+method+'/'+method+'.genomewide.txt','w')
+    print scores
+    chromo_lines=gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines()
+    chromo_lines.append('genomewide')
+    for chromo_line in chromo_lines:
+        chromo=chromo_line.strip()
+        if subset_chromosomes!='NA':
+            if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
+                continue
+        chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
+        methods_list.sort()
+        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list)+'\n')
         for line in open(metadata_pairs,'r').readlines():
             items=line.strip().split()
             samplename1,samplename2=items[0],items[1]
-            genomewide_file.write(samplename1+'\t'+samplename2+'\t'+str(np.mean(np.array(scores[method][samplename1+'.vs.'+samplename2]['genomewide_list'])))+'\n')
-        genomewide_file.close()
+            to_write=[samplename1,samplename2]
+            for method_idx in range(len(methods_list)):
+                cur_score=str(np.mean(np.array(scores[methods_list[method_idx]][samplename1+'.vs.'+samplename2][chromo])))
+                to_write.append(cur_score)
+            chromofile.write('\t'.join(to_write)+'\n')
+        chromofile.close()
 
-    print "methods list"
-    print methods_list
     for method in methods_list:
         if method=='QuASAR-QC' or 'all' in methods_list:
             for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
@@ -483,7 +478,7 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                 items=line.strip().split()
                 samplename=items[0]
                 genomewide_file.write(samplename+'\t'+str(np.mean(np.array(scores[method][samplename]['genomewide_list'])))+'\n')
-        genomewide_file.close()
+            genomewide_file.close()
 
         '''
         #make the heatmap
@@ -678,17 +673,17 @@ def visualize(outdir,parameters_file,metadata_pairs):
         html.write("</body>"+'\n')
         html.write("</html>"+'\n')
 
-def clean_up(outdir,methods):
-    subp.check_output(['bash','-c','rm -r '+outdir+'/data/nodes'])
-    subp.check_output(['bash','-c','rm -r '+outdir+'/data/edges'])
+def clean_up(outdir):
+    subp.check_output(['bash','-c','rm -r '+outdir+'/results/summary'])
+    subp.check_output(['bash','-c','rm -r '+outdir+'/data'])
     subp.check_output(['bash','-c','rm -r '+outdir+'/scripts'])
 
 def run_all(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
     split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file)
     get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
     compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
-    #summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
-    #clean_up(outdir)
+    summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
+    clean_up(outdir)
 
 def main():
     command_methods = {'split': split_by_chromosome,
@@ -704,8 +699,6 @@ def main():
 
     repo_dir=os.path.dirname(os.path.realpath(__file__))
     bashrc_file=repo_dir+'/configuration_files/bashrc.configuration'
-
-    methods_list=args['methods'].split(',')
 
     command_methods[command](**args)
 
