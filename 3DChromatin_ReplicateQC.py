@@ -5,6 +5,7 @@ import subprocess as subp
 import os
 import gzip
 import re
+import copy
 from time import gmtime, strftime
 import matplotlib
 matplotlib.use('Agg')
@@ -440,20 +441,25 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
     print scores
     chromo_lines=gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines()
     chromo_lines.append('genomewide')
+    methods_list_reproducibility=copy.deepcopy(methods_list)
+    if 'all' in methods_list:
+        methods_list_reproducibility=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep']
+    if 'QuASAR-QC' in methods_list_reproducibility:
+        methods_list_reproducibility.remove('QuASAR-QC')
     for chromo_line in chromo_lines:
         chromo=chromo_line.strip()
         if subset_chromosomes!='NA':
             if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
                 continue
         chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
-        methods_list.sort()
-        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list)+'\n')
+        methods_list_reproducibility.sort()
+        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list_reproducibility)+'\n')
         for line in open(metadata_pairs,'r').readlines():
             items=line.strip().split()
             samplename1,samplename2=items[0],items[1]
             to_write=[samplename1,samplename2]
-            for method_idx in range(len(methods_list)):
-                cur_score=str(np.mean(np.array(scores[methods_list[method_idx]][samplename1+'.vs.'+samplename2][chromo])))
+            for method_idx in range(len(methods_list_reproducibility)):
+                cur_score=str(np.mean(np.array(scores[methods_list_reproducibility[method_idx]][samplename1+'.vs.'+samplename2][chromo])))
                 to_write.append(cur_score)
             chromofile.write('\t'.join(to_write)+'\n')
         chromofile.close()
