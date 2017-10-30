@@ -59,7 +59,7 @@ python 3DChromatin_ReplicateQC.py run_all --metadata_samples examples/metadata.s
 
 Output
 ======
-The scores are summarized in the output directory under `results/summary/`.
+The scores are summarized in the output directory under `scores/`.
 
 Inputs
 =============
