@@ -101,19 +101,19 @@ Parameters file
 The parameters file specifies the parameters to be used with 3DChromatin_ReplicateQC. The format of the file is: `method_name parameter_name parameter_value`. The default parameters file used by 3DChromatin_ReplicateQC is:
 
 ```
-GenomeDISCO	subsampling	lowest
-GenomeDISCO	tmin		3
-GenomeDISCO	tmax	3
-GenomeDISCO	norm	sqrtvc
-HiCRep		h	5
-HiCRep		maxdist	5000000
-HiC-Spector	n	20
-QuASAR	rebinning	resolution
+GenomeDISCO|subsampling	lowest
+GenomeDISCO|tmin		3
+GenomeDISCO|tmax	3
+GenomeDISCO|norm	sqrtvc
+HiCRep|h	5
+HiCRep|maxdist	5000000
+HiC-Spector|n	20
+QuASAR|rebinning	resolution
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
 Here are details about setting these parameters:
-- `GenomeDISCO subsampling` This allows subsampling the datasets to a specific desired sequencing depth. Possible values are: `lowest` (subsample to the depth of the sample with the lower sequencing depth from the pair being compared), `<samplename>` where <samplename> is the name of the sample that is used to determine the sequencing depth to subsample from. 
+- `GenomeDISCO|subsampling` This allows subsampling the datasets to a specific desired sequencing depth. Possible values are: `lowest` (subsample to the depth of the sample with the lower sequencing depth from the pair being compared), `<samplename>` where <samplename> is the name of the sample that is used to determine the sequencing depth to subsample from. 
 
 - `GenomeDISCO|tmin` The minimum number of steps of random walk to perform. Integer, > 0.
 
@@ -129,7 +129,7 @@ Here are details about setting these parameters:
 
 - `QuASAR|rebinning` The rebinning distance. See the QuASAR paper (https://www.biorxiv.org/content/early/2017/10/17/204438) for details. Integer.
 
-*Note about normalization*: At the moment, the different methods operate on different types of normalizations. For GenomeDISCO, the user can specify the desired normalization. For HiCRep and HiC-Spector the scores are computed on the provided data, without normalization.
+**Note about normalization**: At the moment, the different methods operate on different types of normalizations. For GenomeDISCO, the user can specify the desired normalization. For HiCRep and HiC-Spector the scores are computed on the provided data, without normalization.
 Thus, if you have normalized data, then you can provide that as an input, and set `GenomeDISCO|norm` to uniform. If you have raw data, then your HiCRep and HiC-Spector scores will be run on the raw data, and GenomeDISCO will be run on the normalization you specify with `GenomeDISCO|norm`.
 
 More questions about this repository?
@@ -140,11 +140,14 @@ oursu@stanford.edu
 
 Thanks
 ===
-*Code*
+**Code**
+
 This repository was put together by Oana Ursu. Thanks to Michael Sauria for providing wrapper scripts around the QuASAR method, Tao Yang for his assistance in integrating HiCRep into this repository, and Koon-Kiu Yan for his assistance in integrating HiC-Spector into this repository.
 
-*Testing*
+**Testing**
+
 Thanks to the Noble lab (Gurkan Yardminci, Jie Liu, Charles Grant), as well as Michael Sauria for testing the code out and for suggestions for improvement.
 
-*docker* (coming soon)
+**docker** (coming soon)
+
 Thanks to Anna Shcherbina for help making this code dockerized.
