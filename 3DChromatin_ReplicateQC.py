@@ -471,15 +471,16 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                 if subset_chromosomes!='NA':
                     if chromo not in subset_chromosomes.split(','):
                         continue
-                chromofile=open(outdir+'/results/summary/'+method+'/'+method+'.'+chromo+'.txt','w')
-                chromofile.write('#Sample\tScore'+'\n')
+                chromofile=open(outdir+'/scores/quality.'+chromo+'.txt','w')
+                chromofile.write('#Sample\tQuASAR-QC'+'\n')
                 for line in open(metadata_samples,'r').readlines():
                     items=line.strip().split()
                     samplename=items[0]
                     chromofile.write(samplename+'\t'+str(scores[method][samplename][chromo])+'\n')
                 chromofile.close()
 
-            genomewide_file=open(outdir+'/results/summary/'+method+'/'+method+'.genomewide.txt','w')
+            genomewide_file=open(outdir+'/scores/quality.genomewide.txt','w')
+            genomewide_file.write('#Sample\tQuASAR-QC'+'\n')
             for line in open(metadata_samples,'r').readlines():
                 items=line.strip().split()
                 samplename=items[0]
