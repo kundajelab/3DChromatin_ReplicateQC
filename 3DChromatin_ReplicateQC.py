@@ -484,7 +484,7 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
             for line in open(metadata_samples,'r').readlines():
                 items=line.strip().split()
                 samplename=items[0]
-                genomewide_file.write(samplename+'\t'+str(np.mean(np.array(scores[method][samplename]['genomewide_list'])))+'\n')
+                genomewide_file.write(samplename+'\t'+str(np.mean(np.array(scores[method][samplename]['genomewide'])))+'\n')
             genomewide_file.close()
 
         '''
