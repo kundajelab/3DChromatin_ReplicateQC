@@ -4,6 +4,7 @@ import argparse
 import subprocess as subp
 import os
 import gzip
+import re
 from time import gmtime, strftime
 import matplotlib
 matplotlib.use('Agg')
@@ -242,7 +243,7 @@ def read_parameters_file(parameters_file):
         parameters_file=repo_dir+"/examples/example_parameters.txt"
     parameters={}
     for line in open(parameters_file,'r').readlines():
-        items=line.strip().split('\t')
+        items=re.sub('\|','\t',line).strip().split('\t')
         method_name,param_name,param_value=items[0],items[1],items[2]
         if method_name not in parameters:
             parameters[method_name]={}
