@@ -87,7 +87,7 @@ m2_big[which(is.na(m2_big))]=0
 #new code
 #========
 #sessionInfo()
-SCC.out = get.scc(m1_big, m2_big, resol, h, 0, maxdist)
+SCC.out = get.scc(m1_big[,-c(1:3)], m2_big[,-c(1:3)], resol, h, 0, maxdist)
 #print('here')
 
 # write score
