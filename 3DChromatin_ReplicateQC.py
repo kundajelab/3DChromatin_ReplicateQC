@@ -47,7 +47,7 @@ def parse_args():
     #TODO: parameters for scge, slurm
     #TODO: jobs waiting for each other
     methods_parser=argparse.ArgumentParser(add_help=False)
-    methods_parser.add_argument('--methods',default='all',help='Which method to use for measuring concordance or QC. Comma-delimited list. Possible methods: "GenomeDISCO", "HiCRep", "HiC-Spector", "QuASAR-Rep", "QuASAR-QC". By default all methods are run') 
+    methods_parser.add_argument('--methods',default='GenomeDISCO,HiCRep,HiC-Spector',help='Which method to use for measuring concordance or QC. Comma-delimited list. Possible methods: "GenomeDISCO", "HiCRep", "HiC-Spector", "QuASAR-Rep", "QuASAR-QC". By default all methods are run.') 
 
     subparsers = parser.add_subparsers(help='3DChromatin_ReplicateQC help', dest='command')
     subparsers.required = True #http://bugs.python.org/issue9253#msg186387
@@ -690,7 +690,7 @@ def run_all(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
     get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
     compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
     summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
-    clean_up(outdir)
+    #clean_up(outdir)
 
 def main():
     command_methods = {'split': split_by_chromosome,

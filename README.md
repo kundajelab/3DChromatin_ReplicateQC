@@ -4,13 +4,13 @@ Welcome! This repository will allow you to measure the quality and reproducibili
 It computes the following:
 
 **Quality scores per sample** using
-- QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive)
+- QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive) ---- coming soon.
 
 **Reproducibility for pairs of samples** using 
 - HiCRep (http://github.com/qunhualilab/hicrep)
 - GenomeDISCO (http://github.com/kundajelab/genomedisco)
 - HiC-Spector (http://github.com/gersteinlab/HiC-spector)
-- QuASAR-Rep (part of the hifive suite at http://github.com/bxlab/hifive)
+- QuASAR-Rep (part of the hifive suite at http://github.com/bxlab/hifive) ---- coming soon.
 
 ![ScreenShot](https://github.com/kundajelab/3DChromatin_ReplicateQC/blob/master/Fig1_outline_2017_08_23.png)
 
