@@ -443,6 +443,60 @@ def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_
             quasar_qc_wrapper(outdir,None,samplename,running_mode)
 
 def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
+    methods_list=methods.split(',')
+
+    #compile scores across methods per chromosome, + genomewide                                                                                                        
+    scores={}
+    subp.check_output(['bash','-c','mkdir -p '+outdir+'/scores'])
+    if methods_list==['all']:
+        methods_list=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep','QuASAR-QC']
+    for method in methods_list:
+        if method=="QuASAR-QC":
+            continue
+        scores[method]={}
+        for line in open(metadata_pairs,'r').readlines():
+            items=line.strip().split()
+            samplename1,samplename2=items[0],items[1]
+            scores[method][samplename1+'.vs.'+samplename2]={}
+            #now, read in the scores
+            for line in open(outdir+'/results/reproducibility/'+method+'/'+samplename1+'.vs.'+samplename2+'.txt','r'):
+                items2=line.strip().split('\t')
+                s1,s2,chromo,current_score=items2[0],items2[1],items2[2],float(items2[3])
+                if subset_chromosomes!='NA':
+                    if chromo not in subset_chromosomes.split(','):
+                        continue
+                scores[method][samplename1+'.vs.'+samplename2][chromo]=[current_score]
+                if 'genomewide' not in scores[method][samplename1+'.vs.'+samplename2].keys():
+                    scores[method][samplename1+'.vs.'+samplename2]['genomewide']=[]
+                scores[method][samplename1+'.vs.'+samplename2]['genomewide'].append(current_score)
+    
+    chromo_lines=gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines()
+    chromo_lines.append('genomewide')
+    methods_list_reproducibility=copy.deepcopy(methods_list)
+    if 'all' in methods_list:
+        methods_list_reproducibility=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep']
+    if 'QuASAR-QC' in methods_list_reproducibility:
+        methods_list_reproducibility.remove('QuASAR-QC')
+    for chromo_line in chromo_lines:
+        chromo=chromo_line.strip()
+        if subset_chromosomes!='NA':
+            if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
+                continue
+        chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
+        methods_list_reproducibility.sort()
+        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list_reproducibility)+'\n')
+        for line in open(metadata_pairs,'r').readlines():
+            items=line.strip().split()
+            samplename1,samplename2=items[0],items[1]
+            to_write=[samplename1,samplename2]
+            for method_idx in range(len(methods_list_reproducibility)):
+                cur_score=str(0.001*int(1000*np.mean(np.array(scores[methods_list_reproducibility[method_idx]][samplename1+'.vs.'+samplename2][chromo]))))
+                to_write.append(cur_score)
+            chromofile.write('\t'.join(to_write)+'\n')
+        chromofile.close()
+    
+
+def summary1(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
     
     methods_list=methods.split(',')
 
