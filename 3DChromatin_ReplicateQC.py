@@ -44,6 +44,9 @@ def parse_args():
     subset_chromosomes_parser=argparse.ArgumentParser(add_help=False)
     subset_chromosomes_parser.add_argument('--subset_chromosomes',default='NA',help='Comma-delimited list of chromosomes for which you want to run the analysis. By default the analysis runs on all chromosomes for which there are data. This is useful for quick testing')
 
+    timing_parser=argparse.ArgumentParser(add_help=False)
+    timing_parser.add_argument('--timing',action='store_true',help='Set this flag to time the analyses. Files detailing the running times of each method can be found in outdir/running_times')
+
     #TODO: parameters for scge, slurm
     #TODO: jobs waiting for each other
     methods_parser=argparse.ArgumentParser(add_help=False)
@@ -54,19 +57,19 @@ def parse_args():
 
     #parsers for commands
     all_parser=subparsers.add_parser('run_all',
-                                     parents=[metadata_samples_parser,metadata_pairs_parser,bins_parser,re_fragments_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser],
+                                     parents=[metadata_samples_parser,metadata_pairs_parser,bins_parser,re_fragments_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser,timing_parser],
                             help='Run all steps in the reproducibility/QC analysis with this single command')
 
     split_parser=subparsers.add_parser('split',
-                                       parents=[metadata_samples_parser,bins_parser,re_fragments_parser,methods_parser,outdir_parser,running_mode_parser,subset_chromosomes_parser,parameter_file_parser],
+                                       parents=[metadata_samples_parser,bins_parser,re_fragments_parser,methods_parser,outdir_parser,running_mode_parser,subset_chromosomes_parser,parameter_file_parser,timing_parser],
                             help='(step 1) split files by chromosome')
 
     qc_parser=subparsers.add_parser('qc',
-                                    parents=[metadata_samples_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser],
+                                    parents=[metadata_samples_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser,timing_parser],
                                     help='(step 2.a) compute QC per sample')
 
     reproducibility_parser=subparsers.add_parser('reproducibility',
-                                                 parents=[metadata_pairs_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser],
+                                                 parents=[metadata_pairs_parser,methods_parser,parameter_file_parser,outdir_parser,running_mode_parser,concise_analysis_parser,subset_chromosomes_parser,timing_parser],
                                                  help='(step 2.b) compute reproducibility of replicate pairs')
 
     summary_parser=subparsers.add_parser('summary',
@@ -90,7 +93,7 @@ def write_resolution(nodes,resolution_filename):
     resolution=int(np.median(np.array(node_sizes)))
     resolution_file.write(str(resolution)+'\n')
 
-def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subset_chromosomes,running_mode):
+def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subset_chromosomes,running_mode,timing):
     quasar_data=outdir+'/data/forQuASAR'
     subp.check_output(['bash','-c','mkdir -p '+quasar_data])
     nodes_partition=quasar_data+'/nodes.partition'
@@ -100,12 +103,12 @@ def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subs
     partition_script.write("#!/bin/sh"+'\n')
     partition_script.write('. '+bashrc_file+'\n')
     partition_script.write('${mypython} '+repo_dir+"/wrappers/QuASAR/make_partition_from_bedfile.py --nodes "+nodes+' --partition '+nodes_partition+' --subset_chromosomes '+subset_chromosomes+' --resolution '+resolution+'\n')
-    partition_script.write('rm '+outdir+'/scripts/forQuASAR/QuASARpartition.sh*'+'\n')
+    #partition_script.write('rm '+outdir+'/scripts/forQuASAR/QuASARpartition.sh*'+'\n')
     partition_script.close()
     
     run_script(partition_script_file,running_mode)
 
-def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode):
+def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing):
     quasar_data=outdir+'/data/forQuASAR'
     nodes_partition=quasar_data+'/nodes.partition'
     script_forquasar_file=outdir+'/scripts/forQuASAR/QuASARmakeData.sh'
@@ -140,7 +143,7 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
         script_forquasar.write('${mypython} -c "import hifive; hic=hifive.HiC(\''+quasar_project+'\',\'w\'); hic.load_data(\''+quasar_output+'\'); hic.save()"'+'\n')
 
         #quasar tranformation        
-        script_forquasar.write(repo_dir+'/software/hifive/bin/hifive quasar -p '+quasar_project+' '+quasar_transform+' -r '+rebinning+'\n')
+        script_forquasar.write(repo_dir+'/software/hifive/bin/hifive quasar -p '+quasar_project+' '+quasar_transform+' -r '+rebinning+' -d 0'+'\n')
 
         #plot the quasar transformation
         #script_forquasar.write('${mypython} '+repo_dir+'/wrappers/QuASAR/plot_quasar_transform.py --transform '+quasar_transform+' --out '+quasar_transform+'\n')
@@ -151,7 +154,7 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
     script_forquasar.close()
     run_script(script_forquasar_file,running_mode)
 
-def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file):
+def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file,timing):
     nodes=os.path.abspath(bins)
     outdir=os.path.abspath(outdir)
     metadata_samples=os.path.abspath(metadata_samples)
@@ -178,9 +181,9 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
 
     if 'QuASAR-QC' in methods_list or 'QuASAR-Rep' in methods_list or "all" in methods_list:
         #make nodes for quasar
-        quasar_makePartition(outdir,nodes,resolution,re_fragments,subset_chromosomes,running_mode)
+        quasar_makePartition(outdir,nodes,resolution,re_fragments,subset_chromosomes,running_mode,timing)
         #create hifive datasets from original files (genomewide)
-        quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode)
+        quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing)
 
     if 'GenomeDISCO' in methods_list or 'HiCRep' in methods_list or 'HiC-Spector' in methods_list or "all" in methods_list:
         #split the data into chromosomes
@@ -227,7 +230,10 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
 def run_script(script_name,running_mode):
     subp.check_output(['bash','-c','chmod 755 '+script_name])
     if running_mode=='NA':
+        #print script_name+'.timed'
+        print script_name
         output=subp.check_output(['bash','-c',script_name])
+        #output=subp.check_output(['bash','-c','{ time '+script_name+'; } 2> '+script_name+'.timed'])
         if output!='':
             print output
     if running_mode=='write_script':
@@ -253,7 +259,7 @@ def read_parameters_file(parameters_file):
         parameters[method_name][param_name]=param_value
     return parameters
 
-def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode):
+def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,timing):
     script_comparison_file=outdir+'/scripts/QuASAR-Rep/'+samplename1+'.vs.'+samplename2+'/'+samplename1+'.vs.'+samplename2+'.QuASAR-Rep.sh'
     subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(script_comparison_file)])
     script_comparison=open(script_comparison_file,'w')
@@ -264,14 +270,21 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode):
     quasar_data=outdir+'/data/forQuASAR'
     quasar_transform1=quasar_data+'/'+samplename1+'.quasar_transform'
     quasar_transform2=quasar_data+'/'+samplename2+'.quasar_transform'
-    script_comparison.write(repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+'\n') 
+    timing_text1=''
+    timing_text2=''
+    if timing:
+        subp.check_output(['bash','-c','mkdir -p '+outdir+'/timing/QuASAR-Rep'])
+        timing_file=outdir+'/timing/QuASAR-Rep/QuASAR-Rep.'+samplename1+'.'+samplename2+'.timing.txt'
+        timing_text1='{ time '
+        timing_text2='; } 2> '+timing_file
+    script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
 
-def quasar_qc_wrapper(outdir,parameters,samplename,running_mode):
+def quasar_qc_wrapper(outdir,parameters,samplename,running_mode,timing):
     script_comparison_file=outdir+'/scripts/QuASAR-QC/'+samplename+'/'+samplename+'.QuASAR-QC.sh'
     subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(script_comparison_file)])
     script_comparison=open(script_comparison_file,'w')
@@ -281,12 +294,19 @@ def quasar_qc_wrapper(outdir,parameters,samplename,running_mode):
     quasar_data=outdir+'/data/forQuASAR'
     quasar_transform=quasar_data+'/'+samplename+'.quasar_transform'
     subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(outpath)])
-    script_comparison.write(repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform+' -o '+outpath+'\n')
+    timing_text1=''
+    timing_text2=''
+    if timing:
+        subp.check_output(['bash','-c','mkdir -p '+outdir+'/timing/QuASAR-QC'])
+        timing_file=outdir+'/timing/QuASAR-QC/QuASAR-QC.'+samplename+'.timing.txt'
+        timing_text1='{ time '
+        timing_text2='; } 2> '+timing_file
+    script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform+' -o '+outpath+' '+timing_text2+'\n')
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes_qc.py"+' '+outpath+' '+samplename+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
 
-def HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,resolution,all_scores):
+def HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,resolution,all_scores,timing):
     cmdlist=[]
     cmdlist.append("#!/bin/sh")
     cmdlist.append('. '+bashrc_file)
@@ -295,12 +315,19 @@ def HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,ch
             outpath=outdir+'/results/reproducibility/HiCRep/'+chromo+'.'+samplename1+'.vs.'+samplename2+'.scores.txt'
             subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(outpath)])
             hicrepcode=repo_dir+"/wrappers/HiCRep/HiCRep_wrapper.R"
-            cmd="Rscript "+hicrepcode+' '+f1+' '+f2+' '+outpath+' '+parameters['HiCRep']['maxdist']+' '+str(resolution)+' '+nodefile+' '+parameters['HiCRep']['h']+' '+samplename1+' '+samplename2
+            timing_text1=''
+            timing_text2=''
+            if timing:
+                cmdlist.append('mkdir -p '+outdir+'/timing/HiCRep')
+                timing_file=outdir+'/timing/HiCRep/HiCRep.'+chromo+'.'+samplename1+'.'+samplename2+'.timing.txt'
+                timing_text1='{ time '
+                timing_text2='; } 2> '+timing_file
+            cmd=timing_text1+"Rscript "+hicrepcode+' '+f1+' '+f2+' '+outpath+' '+parameters['HiCRep']['maxdist']+' '+str(resolution)+' '+nodefile+' '+parameters['HiCRep']['h']+' '+samplename1+' '+samplename2+' '+timing_text2
             cmdlist.append(cmd)
             cmdlist.append('cat '+outpath+" | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
     return cmdlist
     
-def HiCSpector_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,all_scores):
+def HiCSpector_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,all_scores,timing):
     cmdlist=[]
     cmdlist.append("#!/bin/sh")
     cmdlist.append('. '+bashrc_file)
@@ -308,13 +335,20 @@ def HiCSpector_wrapper(outdir,parameters,concise_analysis,samplename1,samplename
         if os.path.isfile(f2) and os.path.getsize(f2)>20:
             outpath=outdir+'/results/reproducibility/HiC-Spector/'+chromo+'.'+samplename1+'.vs.'+samplename2+'.scores.txt'
             subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(outpath)])
-            cmdlist.append("$mypython -W ignore "+repo_dir+"/wrappers/HiC-Spector/hic-spector_wrapper.py --m1 "+f1+" --m2 "+f2+" --out "+outpath+".printout --node_file "+nodefile+" --num_evec "+parameters['HiC-Spector']['n'])
+            timing_text1=''
+            timing_text2=''
+            if timing:
+                cmdlist.append('mkdir -p '+outdir+'/timing/HiC-Spector')
+                timing_file=outdir+'/timing/HiC-Spector/HiC-Spector.'+chromo+'.'+samplename1+'.'+samplename2+'.timing.txt'
+                timing_text1='{ time '
+                timing_text2='; } 2> '+timing_file
+            cmdlist.append(timing_text1+"$mypython -W ignore "+repo_dir+"/wrappers/HiC-Spector/hic-spector_wrapper.py --m1 "+f1+" --m2 "+f2+" --out "+outpath+".printout --node_file "+nodefile+" --num_evec "+parameters['HiC-Spector']['n']+' '+timing_text2)
             cmdlist.append("cat "+outpath+".printout | tail -n1 | cut -f2 | awk '{print \""+samplename1+"\\t"+samplename2+"\\t\"$3}' > "+outpath)
             cmdlist.append("rm "+outpath+".printout")
             cmdlist.append('cat '+outpath+" | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
     return cmdlist
         
-def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,all_scores):
+def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,all_scores,timing):
 
     cmdlist=[]
     cmdlist.append("#!/bin/sh")
@@ -332,7 +366,15 @@ def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplenam
 
             outpath=outdir+'/results/reproducibility/GenomeDISCO/'
             cmdlist.append('mkdir -p '+outpath)
-            cmd="$mypython -W ignore "+repo_dir+"/software/genomedisco/genomedisco/compute_reproducibility.py"+" --m1 "+f1+" --m2 "+f2+" --m1name "+samplename1+" --m2name "+samplename2+" --node_file "+nodefile+" --outdir "+outpath+" --outpref "+chromo+" --m_subsample "+subsampling+" --approximation 10000000 --norm "+parameters['GenomeDISCO']['norm']+" --method RandomWalks "+" --tmin "+parameters['GenomeDISCO']['tmin']+" --tmax "+parameters['GenomeDISCO']['tmax']+concise_analysis_text
+            #{ time ./testscript.sh; } 2> out.txt
+            timing_text1=''
+            timing_text2=''
+            if timing:
+                cmdlist.append('mkdir -p '+outdir+'/timing/GenomeDISCO')
+                timing_file=outdir+'/timing/GenomeDISCO/GenomeDISCO.'+chromo+'.'+samplename1+'.'+samplename2+'.timing.txt'
+                timing_text1='{ time '
+                timing_text2='; } 2> '+timing_file
+            cmd=timing_text1+"$mypython -W ignore "+repo_dir+"/software/genomedisco/genomedisco/compute_reproducibility.py"+" --m1 "+f1+" --m2 "+f2+" --m1name "+samplename1+" --m2name "+samplename2+" --node_file "+nodefile+" --outdir "+outpath+" --outpref "+chromo+" --m_subsample "+subsampling+" --approximation 10000000 --norm "+parameters['GenomeDISCO']['norm']+" --method RandomWalks "+" --tmin "+parameters['GenomeDISCO']['tmin']+" --tmax "+parameters['GenomeDISCO']['tmax']+concise_analysis_text+' '+timing_text2
             cmdlist.append(cmd)
             cmdlist.append('cat '+outpath+chromo+'.'+samplename1+'.vs.'+samplename2+".scores.txt | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
             return cmdlist
@@ -346,7 +388,7 @@ def add_cmds_to_file(cmds,cmds_filename):
         cmds_file.write(cmds[i]+'\n')
     cmds_file.close()
 
-def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
+def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
     #remove scripts from splits
     scripts_from_split=outdir+'/scripts/split'
     if os.path.exists(scripts_from_split):
@@ -372,6 +414,14 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
         HiCRep_scores=outdir+'/results/reproducibility/HiCRep/'+samplename1+'.vs.'+samplename2+'.txt'
         HiCSpector_scores=outdir+'/results/reproducibility/HiC-Spector/'+samplename1+'.vs.'+samplename2+'.txt'
 
+        #scripts for each method
+        cmds_file={}
+        for method in ['GenomeDISCO','HiCRep','HiC-Spector']:
+            cmds_file[method]=outdir+'/scripts/'+method+'/'+samplename1+'.'+samplename2+'.sh'
+            if method in methods_list or "all" in methods_list:
+                if os.path.exists(cmds_file[method]):
+                    subp.check_output(['bash','-c','rm '+cmds_file[method]])
+
         if os.path.exists(GenomeDISCO_scores):
             if "GenomeDISCO" in methods_list or "all" in methods_list:
                 subp.check_output(['bash','-c','rm '+GenomeDISCO_scores])
@@ -388,8 +438,8 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
                 subp.check_output(['bash','-c','mkdir -p '+outdir+'/scripts/'+method])
 
         if "QuASAR-Rep" in methods_list or "all" in methods_list:
-            QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode)
-        
+            QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,timing)
+
         for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():               
             chromo=chromo_line.strip()
             if subset_chromosomes!='NA':
@@ -401,46 +451,44 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
             nodefile=outdir+'/data/nodes/nodes.'+chromo+'.gz'
 
             if "GenomeDISCO" in methods_list or "all" in methods_list:
-                GenomeDISCO_cmds_file=outdir+'/scripts/GenomeDISCO/'+samplename1+'.'+samplename2+'.sh'
-                scripts_to_run.add(GenomeDISCO_cmds_file)
-                GenomeDISCO_cmds=GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,GenomeDISCO_scores)
-                add_cmds_to_file(GenomeDISCO_cmds,GenomeDISCO_cmds_file)
+                scripts_to_run.add(cmds_file['GenomeDISCO'])
+                GenomeDISCO_cmds=GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,GenomeDISCO_scores,timing)
+                add_cmds_to_file(GenomeDISCO_cmds,cmds_file['GenomeDISCO'])
 
             if "HiCRep" in methods_list or "all" in methods_list:
-                HiCRep_cmds_file=outdir+'/scripts/HiCRep/'+samplename1+'.'+samplename2+'.sh'
-                scripts_to_run.add(HiCRep_cmds_file)
-                HiCRep_cmds=HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,resolution,HiCRep_scores)
-                add_cmds_to_file(HiCRep_cmds,HiCRep_cmds_file)
+                scripts_to_run.add(cmds_file['HiCRep'])
+                HiCRep_cmds=HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,resolution,HiCRep_scores,timing)
+                add_cmds_to_file(HiCRep_cmds,cmds_file['HiCRep'])
 
             if "HiC-Spector" in methods_list or "all" in methods_list:
-                HiCSpector_cmds_file=outdir+'/scripts/HiC-Spector/'+samplename1+'.'+samplename2+'.sh'
-                scripts_to_run.add(HiCSpector_cmds_file)
-                HiCSpector_cmds=HiCSpector_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,HiCSpector_scores)
-                add_cmds_to_file(HiCSpector_cmds,HiCSpector_cmds_file)
+                scripts_to_run.add(cmds_file['HiC-Spector'])
+                HiCSpector_cmds=HiCSpector_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,HiCSpector_scores,timing)
+                add_cmds_to_file(HiCSpector_cmds,cmds_file['HiC-Spector'])
 
         #remove files with scores for individual chromosomes
         if "GenomeDISCO" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/*scores*'],GenomeDISCO_cmds_file)
+            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/*scores*'],cmds_file['GenomeDISCO'])
         if "HiCRep" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/*scores*'],HiCRep_cmds_file)
+            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/*scores*'],cmds_file['HiCRep'])
         if "HiC-Spector" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/*scores*'],HiCSpector_cmds_file)
+            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/*scores*'],cmds_file['HiC-Spector'])
 
     #run scripts ==========================
     for f in scripts_to_run:
-        add_cmds_to_file(['rm '+f],f)
+        #add_cmds_to_file(['rm '+f],f)
         run_script(f,running_mode)
 
-def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
+def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
     methods_list=methods.strip().split('\t')
-    if 'QuASAR-QC' in methods_list or 'all' in methods_list:
+    #if 'QuASAR-QC' in methods_list or 'all' in methods_list:
+    if True:
         #TODO: have fewer parameters for this function
         for line in open(metadata_samples,'r').readlines():
             items=line.strip().split()
             samplename=items[0]
             samplefile=items[1]
             print strftime("%c")+'\n'+'running QuASAR-QC | computing QC for '+samplename
-            quasar_qc_wrapper(outdir,None,samplename,running_mode)
+            quasar_qc_wrapper(outdir,None,samplename,running_mode,timing)
 
 def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
     methods_list=methods.split(',')
@@ -494,115 +542,6 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                 to_write.append(cur_score)
             chromofile.write('\t'.join(to_write)+'\n')
         chromofile.close()
-    
-
-def summary1(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
-    
-    methods_list=methods.split(',')
-
-    #compile scores across methods per chromosome, + genomewide
-    scores={}
-    subp.check_output(['bash','-c','mkdir -p '+outdir+'/scores'])
-    if methods_list==['all']:
-        methods_list=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep','QuASAR-QC']
-    for method in methods_list:
-        if method=="QuASAR-QC":
-            continue
-        scores[method]={}
-        for line in open(metadata_pairs,'r').readlines():
-            items=line.strip().split()
-            samplename1,samplename2=items[0],items[1]
-            scores[method][samplename1+'.vs.'+samplename2]={}
-            for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
-                chromo=chromo_line.strip()
-                if subset_chromosomes!='NA':
-                    if chromo not in subset_chromosomes.split(','):
-                        continue
-            
-                pair_text=chromo+'.'+samplename1+'.vs.'+samplename2+'.scores.txt'
-                current_score=float(open(outdir+'/results/reproducibility/'+samplename1+'.vs.'+samplename2+'/'+method+'/'+pair_text,'r').readlines()[0].strip().split('\t')[2])
-                scores[method][samplename1+'.vs.'+samplename2][chromo]=[current_score]
-                if 'genomewide' not in scores[method][samplename1+'.vs.'+samplename2].keys():
-                    scores[method][samplename1+'.vs.'+samplename2]['genomewide']=[]
-                scores[method][samplename1+'.vs.'+samplename2]['genomewide'].append(current_score)
-
-    for method in methods_list:
-        if method=='QuASAR-QC' or 'all' in methods_list:
-            scores['QuASAR-QC']={}
-            for line in open(metadata_samples,'r').readlines():
-                items=line.strip().split()
-                samplename=items[0]
-                scores['QuASAR-QC'][samplename]={}
-                scores['QuASAR-QC'][samplename]['genomewide']=[]
-                for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
-                    chromo=chromo_line.strip()
-                    if subset_chromosomes!='NA':
-                        if chromo not in subset_chromosomes.split(','):
-                            continue
-                    current_score=float(open(outdir+'/results/qc/'+samplename+'/'+method+'/'+chromo+'.'+samplename+'.scores.txt','r').readlines()[0].strip().split('\t')[1])
-                    scores['QuASAR-QC'][samplename]['genomewide'].append(current_score)
-                    scores['QuASAR-QC'][samplename][chromo]=[current_score]
-
-    print scores
-    chromo_lines=gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines()
-    chromo_lines.append('genomewide')
-    methods_list_reproducibility=copy.deepcopy(methods_list)
-    if 'all' in methods_list:
-        methods_list_reproducibility=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep']
-    if 'QuASAR-QC' in methods_list_reproducibility:
-        methods_list_reproducibility.remove('QuASAR-QC')
-    for chromo_line in chromo_lines:
-        chromo=chromo_line.strip()
-        if subset_chromosomes!='NA':
-            if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
-                continue
-        chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
-        methods_list_reproducibility.sort()
-        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list_reproducibility)+'\n')
-        for line in open(metadata_pairs,'r').readlines():
-            items=line.strip().split()
-            samplename1,samplename2=items[0],items[1]
-            to_write=[samplename1,samplename2]
-            for method_idx in range(len(methods_list_reproducibility)):
-                cur_score=str(np.mean(np.array(scores[methods_list_reproducibility[method_idx]][samplename1+'.vs.'+samplename2][chromo])))
-                to_write.append(cur_score)
-            chromofile.write('\t'.join(to_write)+'\n')
-        chromofile.close()
-
-    for method in methods_list:
-        if method=='QuASAR-QC' or 'all' in methods_list:
-            for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
-                chromo=chromo_line.strip()
-                if subset_chromosomes!='NA':
-                    if chromo not in subset_chromosomes.split(','):
-                        continue
-                chromofile=open(outdir+'/scores/quality.'+chromo+'.txt','w')
-                chromofile.write('#Sample\tQuASAR-QC'+'\n')
-                for line in open(metadata_samples,'r').readlines():
-                    items=line.strip().split()
-                    samplename=items[0]
-                    chromofile.write(samplename+'\t'+str(scores[method][samplename][chromo])+'\n')
-                chromofile.close()
-
-            genomewide_file=open(outdir+'/scores/quality.genomewide.txt','w')
-            genomewide_file.write('#Sample\tQuASAR-QC'+'\n')
-            for line in open(metadata_samples,'r').readlines():
-                items=line.strip().split()
-                samplename=items[0]
-                genomewide_file.write(samplename+'\t'+str(np.mean(np.array(scores[method][samplename]['genomewide'])))+'\n')
-            genomewide_file.close()
-
-        '''
-        #make the heatmap
-        heatmap_script_file=outdir+'/results/summary/heatmap.sh'
-        heatmap_script=open(heatmap_script_file,'w')
-        heatmap_script.write("#!/bin/sh"+'\n')
-        heatmap_script.write('. '+bashrc_file+'\n')
-        heatmap_script.write("Rscript "+os.path.abspath(os.path.dirname(os.path.realpath(__file__))+"/scripts/plot_score_heatmap.R")+' '+outdir+'/results/summary/'+method+'/'+method+'.genomewide.txt'+' '+outdir+'/results/summary/'+method+'/'+method+'.genomewide.pdf'+'\n')
-        heatmap_script.close()
-        run_script(heatmap_script_file,'NA')
-        '''
-        visualize(outdir,parameters_file,metadata_pairs)
 
 def visualize(outdir,parameters_file,metadata_pairs):
     header_col='FF0000'
@@ -790,10 +729,10 @@ def clean_up(outdir):
     subp.check_output(['bash','-c','rm -r '+outdir+'/data'])
     subp.check_output(['bash','-c','rm -r '+outdir+'/scripts'])
 
-def run_all(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
-    split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file)
-    get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
-    compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
+def run_all(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
+    split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file,timing)
+    get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing)
+    compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing)
     summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
     #clean_up(outdir)
 
