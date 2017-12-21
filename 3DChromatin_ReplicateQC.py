@@ -243,6 +243,7 @@ def run_script(script_name,running_mode):
         output=subp.check_output(['bash','-c','qsub -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name])
     #TODO: if you choose slurm, then you need to change the settings and provide a file with settings
     if running_mode=='slurm':
+        print 'here in slurm'
         memo='50G'
         partition='akundaje'
         output=subp.check_output(['bash','-c','sbatch --mem '+memo+' -o '+script_name+'.o -e '+script_name+'.e'+' -p '+partition+' '+script_name])
