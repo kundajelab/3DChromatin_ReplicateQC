@@ -105,7 +105,7 @@ ${pythondir}/pip install h5py
 ${pythondir}/conda install -c anaconda mpi4py
 git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 cd ${repo_dir}/software/hifive
-git checkout v1.5.2
+git checkout v1.5.3
 ${pythondir}/python setup.py install
 
 #==================
