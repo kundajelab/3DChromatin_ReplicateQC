@@ -231,7 +231,6 @@ def run_script(script_name,running_mode):
     subp.check_output(['bash','-c','chmod 755 '+script_name])
     if running_mode=='NA':
         #print script_name+'.timed'
-        print script_name
         output=subp.check_output(['bash','-c',script_name])
         #output=subp.check_output(['bash','-c','{ time '+script_name+'; } 2> '+script_name+'.timed'])
         if output!='':
@@ -481,8 +480,7 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
 
 def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
     methods_list=methods.strip().split('\t')
-    #if 'QuASAR-QC' in methods_list or 'all' in methods_list:
-    if True:
+    if 'QuASAR-QC' in methods_list or 'all' in methods_list:
         #TODO: have fewer parameters for this function
         for line in open(metadata_samples,'r').readlines():
             items=line.strip().split()

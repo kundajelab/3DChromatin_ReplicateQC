@@ -91,7 +91,7 @@ SCC.out = get.scc(m1_big[,-c(1:3)], m2_big[,-c(1:3)], resol, h, 0, maxdist)
 #print('here')
 
 # write score
-scores=data.frame(M1=m1name,M2=m2name,score=SCC.out[['scc']],sd=SCC.out[['std']])
+scores=data.frame(M1=m1name,M2=m2name,score=round(SCC.out[['scc']],3),sd=SCC.out[['std']])
 write.table(scores,file=out,quote=FALSE,row.names=FALSE,col.names=FALSE,sep='\t')
 
 #also, plot the correlations and the weights
