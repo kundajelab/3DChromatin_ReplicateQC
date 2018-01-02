@@ -238,8 +238,10 @@ def run_script(script_name,running_mode):
     if running_mode=='write_script':
         pass
     if running_mode=='sge':
-        memo='3G'
-        output=subp.check_output(['bash','-c','qsub -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name])
+        memo='5G'
+        #print 'qsub -l hostname=*scg4*.local -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name
+        output=subp.check_output(['bash','-c','qsub -l hostname=*scg4*.local -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name])
+        print output
     #TODO: if you choose slurm, then you need to change the settings and provide a file with settings
     if running_mode=='slurm':
         print 'here in slurm'
@@ -280,7 +282,8 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,ti
     script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
-    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
+    script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_combine_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
+    script_comparison.write('rm '+outpath+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode)
 
@@ -361,13 +364,16 @@ def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplenam
             scoresByStep_text=''
             if parameters['GenomeDISCO']['scoresByStep']=='yes':
                 scoresByStep_text=' --scoresByStep'
+            removeDiag_text=''
+            if parameters['GenomeDISCO']['removeDiag']=='yes':
+                removeDiag_text=' --remove_diagonal'
             #get the sample that goes for subsampling
             subsampling=parameters['GenomeDISCO']['subsampling']
             if parameters['GenomeDISCO']['subsampling']!='NA' and parameters['GenomeDISCO']['subsampling']!='lowest':
                 subsampling_sample=parameters['GenomeDISCO']['subsampling']
                 subsampling=outdir+'/data/edges/'+subsampling_sample+'/'+subsampling_sample+'.'+chromo+'.gz'
 
-            outpath=outdir+'/results/reproducibility/GenomeDISCO/'
+            outpath=outdir+'/results/reproducibility/GenomeDISCO'
             cmdlist.append('mkdir -p '+outpath)
             #{ time ./testscript.sh; } 2> out.txt
             timing_text1=''
@@ -377,9 +383,9 @@ def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplenam
                 timing_file=outdir+'/timing/GenomeDISCO/GenomeDISCO.'+chromo+'.'+samplename1+'.'+samplename2+'.timing.txt'
                 timing_text1='{ time '
                 timing_text2='; } 2> '+timing_file
-            cmd=timing_text1+"$mypython -W ignore "+repo_dir+"/software/genomedisco/genomedisco/compute_reproducibility.py"+" --m1 "+f1+" --m2 "+f2+" --m1name "+samplename1+" --m2name "+samplename2+" --node_file "+nodefile+" --outdir "+outpath+" --outpref "+chromo+" --m_subsample "+subsampling+" --approximation 10000000 --norm "+parameters['GenomeDISCO']['norm']+" --method RandomWalks "+" --tmin "+parameters['GenomeDISCO']['tmin']+" --tmax "+parameters['GenomeDISCO']['tmax']+concise_analysis_text+scoresByStep_text+' '+timing_text2
+            cmd=timing_text1+"$mypython "+repo_dir+"/software/genomedisco/genomedisco/compute_reproducibility.py"+" --m1 "+f1+" --m2 "+f2+" --m1name "+samplename1+" --m2name "+samplename2+" --node_file "+nodefile+" --outdir "+outpath+" --outpref "+chromo+" --m_subsample "+subsampling+" --approximation 10000000 --norm "+parameters['GenomeDISCO']['norm']+" --method RandomWalks "+" --tmin "+parameters['GenomeDISCO']['tmin']+" --tmax "+parameters['GenomeDISCO']['tmax']+concise_analysis_text+scoresByStep_text+removeDiag_text+' '+timing_text2
             cmdlist.append(cmd)
-            cmdlist.append('cat '+outpath+chromo+'.'+samplename1+'.vs.'+samplename2+".scores.txt | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
+            cmdlist.append('cat '+outpath+'/'+chromo+'.'+samplename1+'.vs.'+samplename2+".scores.txt | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
             return cmdlist
 
 def add_cmds_to_file(cmds,cmds_filename):
@@ -469,14 +475,21 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
                 add_cmds_to_file(HiCSpector_cmds,cmds_file['HiC-Spector'])
 
         #remove files with scores for individual chromosomes
-        if "GenomeDISCO" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/*scores*'],cmds_file['GenomeDISCO'])
-        if "HiCRep" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/*scores*'],cmds_file['HiCRep'])
-        if "HiC-Spector" in methods_list or "all" in methods_list:
-            add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/*scores*'],cmds_file['HiC-Spector'])
+        for chromo_line in gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines():
+            chromo=chromo_line.strip()
+            if subset_chromosomes!='NA':
+                if chromo not in subset_chromosomes.split(','):
+                    continue
+            if "GenomeDISCO" in methods_list or "all" in methods_list:
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['GenomeDISCO'])
+            if "HiCRep" in methods_list or "all" in methods_list:
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiCRep'])
+            if "HiC-Spector" in methods_list or "all" in methods_list:
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiC-Spector'])
 
     #run scripts ==========================
+    scripts_to_run=list(scripts_to_run)
+    scripts_to_run.sort()
     for f in scripts_to_run:
         #add_cmds_to_file(['rm '+f],f)
         run_script(f,running_mode)
@@ -527,23 +540,25 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
         methods_list_reproducibility=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep']
     if 'QuASAR-QC' in methods_list_reproducibility:
         methods_list_reproducibility.remove('QuASAR-QC')
-    for chromo_line in chromo_lines:
-        chromo=chromo_line.strip()
-        if subset_chromosomes!='NA':
-            if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
-                continue
-        chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
-        methods_list_reproducibility.sort()
-        chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list_reproducibility)+'\n')
-        for line in open(metadata_pairs,'r').readlines():
-            items=line.strip().split()
-            samplename1,samplename2=items[0],items[1]
-            to_write=[samplename1,samplename2]
-            for method_idx in range(len(methods_list_reproducibility)):
-                cur_score=str(0.001*int(1000*np.mean(np.array(scores[methods_list_reproducibility[method_idx]][samplename1+'.vs.'+samplename2][chromo]))))
-                to_write.append(cur_score)
-            chromofile.write('\t'.join(to_write)+'\n')
-        chromofile.close()
+    if len(methods_list_reproducibility)>0:
+
+        for chromo_line in chromo_lines:
+            chromo=chromo_line.strip()
+            if subset_chromosomes!='NA':
+                if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
+                    continue
+            chromofile=open(outdir+'/scores/reproducibility.'+chromo+'.txt','w')
+            methods_list_reproducibility.sort()
+            chromofile.write('#Sample1\tSample2\t'+'\t'.join(methods_list_reproducibility)+'\n')
+            for line in open(metadata_pairs,'r').readlines():
+                items=line.strip().split()
+                samplename1,samplename2=items[0],items[1]
+                to_write=[samplename1,samplename2]
+                for method_idx in range(len(methods_list_reproducibility)):
+                    cur_score=str(0.001*int(1000*np.mean(np.array(scores[methods_list_reproducibility[method_idx]][samplename1+'.vs.'+samplename2][chromo]))))
+                    to_write.append(cur_score)
+                chromofile.write('\t'.join(to_write)+'\n')
+            chromofile.close()
 
 def visualize(outdir,parameters_file,metadata_pairs):
     header_col='FF0000'
@@ -727,7 +742,7 @@ def visualize(outdir,parameters_file,metadata_pairs):
         html.write("</html>"+'\n')
 
 def clean_up(outdir):
-    subp.check_output(['bash','-c','rm -r '+outdir+'/results/summary'])
+    subp.check_output(['bash','-c','rm -r '+outdir+'/results'])
     subp.check_output(['bash','-c','rm -r '+outdir+'/data'])
     subp.check_output(['bash','-c','rm -r '+outdir+'/scripts'])
 
@@ -736,7 +751,7 @@ def run_all(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
     get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing)
     compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing)
     summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes)
-    #clean_up(outdir)
+    clean_up(outdir)
 
 def main():
     command_methods = {'split': split_by_chromosome,
