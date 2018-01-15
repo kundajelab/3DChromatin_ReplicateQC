@@ -152,11 +152,14 @@ Running 3DChromatin_ReplicateQC step by step
 
 **3DChromatin_ReplicateQC steps**
 
-**split** 
+`split`
 
 Splits by chromosome all datasets provided in `--metadata_samples`.
 
-Example command: `python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output`
+Example command: 
+```
+python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output
+```
 
 **qc**
 
