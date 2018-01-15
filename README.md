@@ -4,13 +4,13 @@ Welcome! This repository will allow you to measure the quality and reproducibili
 It computes the following:
 
 **Quality scores per sample** using
-- QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive) ---- coming soon.
+- QuASAR-QC (part of the hifive suite at http://github.com/bxlab/hifive) 
 
 **Reproducibility for pairs of samples** using 
 - HiCRep (http://github.com/qunhualilab/hicrep)
 - GenomeDISCO (http://github.com/kundajelab/genomedisco)
 - HiC-Spector (http://github.com/gersteinlab/HiC-spector)
-- QuASAR-Rep (part of the hifive suite at http://github.com/bxlab/hifive) ---- coming soon.
+- QuASAR-Rep (part of the hifive suite at http://github.com/bxlab/hifive)
 
 ![ScreenShot](https://github.com/kundajelab/3DChromatin_ReplicateQC/blob/master/Fig1_outline_2017_08_23.png)
 
@@ -105,6 +105,9 @@ GenomeDISCO|subsampling	lowest
 GenomeDISCO|tmin		3
 GenomeDISCO|tmax	3
 GenomeDISCO|norm	sqrtvc
+GenomeDISCO|scoresByStep	no
+GenomeDISCO|removeDiag		yes
+GenomeDISCO|transition		yes
 HiCRep|h	5
 HiCRep|maxdist	5000000
 HiC-Spector|n	20
@@ -113,6 +116,8 @@ QuASAR|rebinning	resolution
 Note: all of the above parameters need to be specified in the parameters file.
 
 Here are details about setting these parameters:
+
+**GenomeDISCO parameters**
 - `GenomeDISCO|subsampling` This allows subsampling the datasets to a specific desired sequencing depth. Possible values are: `lowest` (subsample to the depth of the sample with the lower sequencing depth from the pair being compared), `<samplename>` where <samplename> is the name of the sample that is used to determine the sequencing depth to subsample from. 
 
 - `GenomeDISCO|tmin` The minimum number of steps of random walk to perform. Integer, > 0.
@@ -120,6 +125,12 @@ Here are details about setting these parameters:
 - `GenomeDISCO|tmax` The max number of steps of random walk to perform. Integer, > tmin.
  
 - `GenomeDISCO|norm` The normalization to use on the data when running GenomeDISCO. Possible values include: `uniform` (no normalization), `sqrtvc`.
+
+- `GenomeDISCO|scoresByStep` Whether to report the score at each t. By default (GenomeDISCO|scoresByStep no), only the final reproducibility score is returned.
+
+- `GenomeDISCO|removeDiag` Whether to set the diagonal to entries in the contact map to 0. By default (GenomeDISCO|removeDiag yes), the diagonal entries are set to 0.
+
+- `GenomeDISCO|transition` Whether to convert the normalized contact map to an appropriate transition matrix before running the random walks. By default (GenomeDISCO|transition yes) the normalized contact map is converted to a proper transition matrix, such that all rows sum to 1 exactly.
 
 - `HiCRep|h` The h parameter in HiCRep that determines the extent of 2D smoothing. See the HiCRep paper (http://genome.cshlp.org/content/early/2017/08/30/gr.220640.117) for details. Integer, >=0.
 
