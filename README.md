@@ -132,22 +132,33 @@ Here are details about setting these parameters:
 
 - `GenomeDISCO|transition` Whether to convert the normalized contact map to an appropriate transition matrix before running the random walks. By default (GenomeDISCO|transition yes) the normalized contact map is converted to a proper transition matrix, such that all rows sum to 1 exactly.
 
+**HiCRep parameters**
 - `HiCRep|h` The h parameter in HiCRep that determines the extent of 2D smoothing. See the HiCRep paper (http://genome.cshlp.org/content/early/2017/08/30/gr.220640.117) for details. Integer, >=0.
 
 - `HiCRep|maxdist` The maximum distance to consider when computing the HiCRep score. Integer, should be a amultiple of the resolution of the data.
 
+**HiC-Spector parameters**
 - `HiC-Spector|n` The number of eigenvectors to use for HiC-Spector. Integer, > 0.
 
+**QuASAR parameters**
 - `QuASAR|rebinning` The rebinning distance. See the QuASAR paper (https://www.biorxiv.org/content/early/2017/10/17/204438) for details. Integer.
 
 **Note about normalization**: At the moment, the different methods operate on different types of normalizations. For GenomeDISCO, the user can specify the desired normalization. For HiCRep and HiC-Spector the scores are computed on the provided data, without normalization.
 Thus, if you have normalized data, then you can provide that as an input, and set `GenomeDISCO|norm` to uniform. If you have raw data, then your HiCRep and HiC-Spector scores will be run on the raw data, and GenomeDISCO will be run on the normalization you specify with `GenomeDISCO|norm`.
 
+Running 3DChromatin_ReplicateQC step by step
+============================================
+3DChromatin_ReplicateQC consists of multiple steps, which are run in sequence by default. However, the user may decide to run the steps individually, which can be useful for instance when running 3DChromatin_ReplicateQC with job submission engines that runs the comparisons in parallel as separate jobs.
+
+**3DChromatin_ReplicateQC steps**
+**split** Splits all datasets provided as `--metadata_samples` by chromosome.
+Example command: `python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output 
+
 More questions about this repository?
 ====
-Contact Oana Ursu
+Contact Oana Ursu (oursu@stanford.edu)
 
-oursu@stanford.edu
+Or submit an issue for this repository.
 
 Thanks
 ===
