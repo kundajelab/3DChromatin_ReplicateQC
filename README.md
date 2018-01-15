@@ -151,8 +151,9 @@ Running 3DChromatin_ReplicateQC step by step
 3DChromatin_ReplicateQC consists of multiple steps, which are run in sequence by default. However, the user may decide to run the steps individually, which can be useful for instance when running 3DChromatin_ReplicateQC with job submission engines that runs the comparisons in parallel as separate jobs.
 
 **3DChromatin_ReplicateQC steps**
+
 **split** Splits all datasets provided as `--metadata_samples` by chromosome.
-Example command: `python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output 
+Example command: `python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output`
 
 More questions about this repository?
 ====
