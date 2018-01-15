@@ -4,6 +4,7 @@ GenomeDISCO|tmax	3
 GenomeDISCO|norm	sqrtvc
 GenomeDISCO|scoresByStep	no
 GenomeDISCO|removeDiag	yes
+GenomeDISCO|transition	no
 HiCRep|h	5
 HiCRep|maxdist	5000000
 HiC-Spector|n	20
