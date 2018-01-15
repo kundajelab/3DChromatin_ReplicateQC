@@ -50,7 +50,7 @@ def parse_args():
     #TODO: parameters for scge, slurm
     #TODO: jobs waiting for each other
     methods_parser=argparse.ArgumentParser(add_help=False)
-    methods_parser.add_argument('--methods',default='GenomeDISCO,HiCRep,HiC-Spector',help='Which method to use for measuring concordance or QC. Comma-delimited list. Possible methods: "GenomeDISCO", "HiCRep", "HiC-Spector", "QuASAR-Rep", "QuASAR-QC". By default all methods are run.') 
+    methods_parser.add_argument('--methods',default='GenomeDISCO,HiCRep,HiC-Spector,QuASAR-QC,QuASAR-Rep',help='Which method to use for measuring concordance or QC. Comma-delimited list. Possible methods: "GenomeDISCO", "HiCRep", "HiC-Spector", "QuASAR-Rep", "QuASAR-QC". By default all methods are run.') 
 
     subparsers = parser.add_subparsers(help='3DChromatin_ReplicateQC help', dest='command')
     subparsers.required = True #http://bugs.python.org/issue9253#msg186387
@@ -498,7 +498,7 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
         run_script(f,running_mode)
 
 def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
-    methods_list=methods.strip().split('\t')
+    methods_list=methods.strip().split(',')
     if 'QuASAR-QC' in methods_list or 'all' in methods_list:
         #TODO: have fewer parameters for this function
         for line in open(metadata_samples,'r').readlines():

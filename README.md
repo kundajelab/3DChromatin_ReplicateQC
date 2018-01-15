@@ -152,9 +152,35 @@ Running 3DChromatin_ReplicateQC step by step
 
 **3DChromatin_ReplicateQC steps**
 
-**split** Splits all datasets provided as `--metadata_samples` by chromosome.
+**split** 
+
+Splits by chromosome all datasets provided in `--metadata_samples`.
 
 Example command: `python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output`
+
+**qc**
+
+Runs QC methods on all samples provided in `--metadata_samples`. Note that this step is only compatible with `--methods QuASAR-QC`, since this is the only method that provides sample-level quality scores. If you provide any other methods to this step in addition to QuASAR-QC, they will not be run.
+
+Example command: `python 3DChromatin_ReplicateQC.py qc --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC --parameters_file examples/example_parameters.txt`
+
+**reproducibility**
+
+Runs reproducibility methods on all samples pairs provided in `--metadata_pairs`. Note that the only methods that can be run with this step are: GenomeDISCO, HiCRep, HiC-Spector and QuASAR-Rep. If QuASAR-QC is provided here, it will not be run. 
+
+Example command: `python 3DChromatin_ReplicateQC.py reproducibility --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep --parameters_file examples/example_parameters.txt`
+
+**summary**
+
+Summarizes scores across all comparisons.
+
+Example command: `python 3DChromatin_ReplicateQC.py summary --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Nodes.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC`
+
+**cleanup**
+
+Clean up superfluous files, leaving only the scores.
+
+Example command: `python 3DChromatin_ReplicateQC.py cleanup --outdir examples/output`
 
 More questions about this repository?
 ====
