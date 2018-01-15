@@ -12,6 +12,7 @@ matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 from pylab import rcParams
+import fnmatch
 
 def parse_args():
     parser = argparse.ArgumentParser(description='3DChromatin_ReplicateQC main script')
@@ -511,7 +512,8 @@ def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_
 def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
     methods_list=methods.split(',')
 
-    #compile scores across methods per chromosome, + genomewide                                                                                                        
+    #compile scores across methods per chromosome, + genomewide                                            
+    #for reproducbility measures =============================================
     scores={}
     subp.check_output(['bash','-c','mkdir -p '+outdir+'/scores'])
     if methods_list==['all']:
@@ -536,6 +538,34 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                     scores[method][samplename1+'.vs.'+samplename2]['genomewide']=[]
                 scores[method][samplename1+'.vs.'+samplename2]['genomewide'].append(current_score)
     
+    #now, read quality scores
+    scores_qc={}
+    subp.check_output(['bash','-c','mkdir -p '+outdir+'/scores'])
+    if methods_list==['all']:
+        methods_list=['GenomeDISCO','HiCRep','HiC-Spector','QuASAR-Rep','QuASAR-QC']
+    for method in methods_list:
+        if method=="QuASAR-QC":
+            scores_qc[method]={}
+            for line in open(metadata_samples,'r').readlines():
+                items=line.strip().split()
+                samplename=items[0]
+                scores_qc[method][samplename]={}
+                #now, read in the scores            
+                for filename in os.listdir(os.path.dirname(os.path.realpath(outdir+'/results/qc/'+samplename+'/QuASAR-QC/*'))):
+                    if fnmatch.fnmatch(filename, '*.'+samplename+'.scores.txt'):
+                        fname=os.path.dirname(os.path.realpath(outdir+'/results/qc'))+'/qc/'+samplename+'/QuASAR-QC/'+filename
+                        for line2 in open(fname,'r').readlines():
+                            items2=line2.strip().split('\t')
+                            current_score=float(items2[1])
+                            chromo=re.sub('.'+samplename+'.scores.txt','',os.path.basename(fname))
+                            if subset_chromosomes!='NA':
+                                if chromo not in subset_chromosomes.split(','):
+                                    continue
+                            scores_qc[method][samplename][chromo]=[current_score]
+                            if 'genomewide' not in scores_qc[method][samplename].keys():
+                                scores_qc[method][samplename]['genomewide']=[]
+                            scores_qc[method][samplename]['genomewide'].append(current_score)
+
     chromo_lines=gzip.open(outdir+'/data/metadata/chromosomes.gz','r').readlines()
     chromo_lines.append('genomewide')
     methods_list_reproducibility=copy.deepcopy(methods_list)
@@ -562,6 +592,25 @@ def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters
                     to_write.append(cur_score)
                 chromofile.write('\t'.join(to_write)+'\n')
             chromofile.close()
+
+    #qc scores
+    for method in methods_list:
+        if method=="QuASAR-QC":
+            for chromo_line in chromo_lines:
+                chromo=chromo_line.strip()
+                if subset_chromosomes!='NA':
+                    if chromo not in subset_chromosomes.split(',') and chromo_line!='genomewide':
+                        continue
+                chromofile=open(outdir+'/scores/qc.'+chromo+'.txt','w')
+                chromofile.write('#Sample\t'+'\t'+'QuASAR-QC'+'\n')
+                for line in open(metadata_samples,'r').readlines():
+                    items=line.strip().split()
+                    samplename=items[0]
+                    to_write=[samplename1]
+                    cur_score=str(0.001*int(1000*np.mean(np.array(scores_qc['QuASAR-QC'][samplename][chromo]))))
+                    to_write.append(cur_score)
+                    chromofile.write('\t'.join(to_write)+'\n')
+                chromofile.close()
 
 def visualize(outdir,parameters_file,metadata_pairs):
     header_col='FF0000'
