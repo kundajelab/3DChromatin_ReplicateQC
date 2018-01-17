@@ -112,6 +112,8 @@ HiCRep|h	5
 HiCRep|maxdist	5000000
 HiC-Spector|n	20
 QuASAR|rebinning	resolution
+SGE|text	"-l h_vmem=3G"
+slurm|text	"--mem 3G"
 ```
 Note: all of the above parameters need to be specified in the parameters file.
 
@@ -142,6 +144,11 @@ Here are details about setting these parameters:
 
 **QuASAR parameters**
 - `QuASAR|rebinning` The rebinning distance. See the QuASAR paper (https://www.biorxiv.org/content/early/2017/10/17/204438) for details. Integer.
+
+**Job submission parameters**
+- `SGE|text` Text to append to the job submission for SGE. The default is "-l h_vmem=3G".
+
+- `slurm|text` Text to append to the job submission for slurm. The default is "--mem 3G". 
 
 **Note about normalization**: At the moment, the different methods operate on different types of normalizations. For GenomeDISCO, the user can specify the desired normalization. For HiCRep and HiC-Spector the scores are computed on the provided data, without normalization.
 Thus, if you have normalized data, then you can provide that as an input, and set `GenomeDISCO|norm` to uniform. If you have raw data, then your HiCRep and HiC-Spector scores will be run on the raw data, and GenomeDISCO will be run on the normalization you specify with `GenomeDISCO|norm`.
@@ -196,6 +203,25 @@ Example command:
 ```
 python 3DChromatin_ReplicateQC.py cleanup --outdir examples/output
 ```
+
+Running this code with job submission engines
+============
+
+It is possible to run 3DChromatin_ReplicateQC with job submission engines, specifically either SGE or slurm.
+To do so, modify the parameters `SGE|text` or `slurm|text` respectively, to add any additional parameters to the job run.
+
+Then, run the steps sequentially (that is, wait for all jobs of a given step to complete before launching the next step), while specifying `--running_mode` to either `sge` or `slurm`.
+
+For instance, an example analysis workflow for SGE would be:
+```
+python 3DChromatin_ReplicateQC.py split --running_mode sge --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output 
+python 3DChromatin_ReplicateQC.py qc --running_mode sge --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC --parameters_file examples/example_parameters.txt
+python 3DChromatin_ReplicateQC.py reproducibility --running_mode sge --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep --parameters_file examples/example_parameters.txt
+python 3DChromatin_ReplicateQC.py summary --running_mode sge --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Nodes.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
+python 3DChromatin_ReplicateQC.py cleanup --running_mode sge --outdir examples/output
+```
+
+Similarly, for slurm, change sge to slurm for the `--running_mode`.
 
 More questions about this repository?
 ====

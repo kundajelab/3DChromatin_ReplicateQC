@@ -94,7 +94,7 @@ def write_resolution(nodes,resolution_filename):
     resolution=int(np.median(np.array(node_sizes)))
     resolution_file.write(str(resolution)+'\n')
 
-def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subset_chromosomes,running_mode,timing):
+def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subset_chromosomes,running_mode,timing,parameters):
     quasar_data=outdir+'/data/forQuASAR'
     subp.check_output(['bash','-c','mkdir -p '+quasar_data])
     nodes_partition=quasar_data+'/nodes.partition'
@@ -107,20 +107,26 @@ def quasar_makePartition(outdir,nodes,resolution,restriction_fragment_level,subs
     #partition_script.write('rm '+outdir+'/scripts/forQuASAR/QuASARpartition.sh*'+'\n')
     partition_script.close()
     
-    run_script(partition_script_file,running_mode)
+    run_script(partition_script_file,'NA',parameters)
 
-def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing):
+def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing,parameters,resolution,nodes):
     quasar_data=outdir+'/data/forQuASAR'
+    subp.check_output(['bash','-c','mkdir -p '+quasar_data])
     nodes_partition=quasar_data+'/nodes.partition'
     script_forquasar_file=outdir+'/scripts/forQuASAR/QuASARmakeData.sh'
     subp.check_output(['bash','-c','mkdir -p '+os.path.dirname(script_forquasar_file)])
     script_forquasar=open(script_forquasar_file,'w')
     script_forquasar.write("#!/bin/sh"+'\n')
     script_forquasar.write('. '+bashrc_file+'\n')
+
+    script_forquasar.write('cd '+repo_dir+'\n')
+    script_forquasar.write('${mypython} '+repo_dir+"/wrappers/QuASAR/make_partition_from_bedfile.py --nodes "+nodes+' --partition '+nodes_partition+' --subset_chromosomes '+subset_chromosomes+' --resolution '+resolution+'\n')
+
     for line in open(metadata_samples,'r').readlines():
         items=line.strip().split()
         samplename=items[0]
         samplefile=items[1]
+        #nodes_partition=quasar_data+'/nodes.partition'+samplename
         full_dataset=quasar_data+'/'+samplename+'.fulldata.gz'
         quasar_output=quasar_data+'/'+samplename+'.quasar_data'
         quasar_project=quasar_data+'/'+samplename+'.quasar_project'
@@ -151,9 +157,9 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
 
         #remove intermediate files
         script_forquasar.write('rm '+quasar_output+' '+quasar_project+'\n')
-    script_forquasar.write('rm '+outdir+'/scripts/forQuASAR/QuASARmakeData.sh*'+'\n')
+    #script_forquasar.write('rm '+outdir+'/scripts/forQuASAR/QuASARmakeData.sh*'+'\n')
     script_forquasar.close()
-    run_script(script_forquasar_file,running_mode)
+    run_script(script_forquasar_file,running_mode,parameters)
 
 def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,running_mode,subset_chromosomes,parameters_file,timing):
     nodes=os.path.abspath(bins)
@@ -182,9 +188,9 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
 
     if 'QuASAR-QC' in methods_list or 'QuASAR-Rep' in methods_list or "all" in methods_list:
         #make nodes for quasar
-        quasar_makePartition(outdir,nodes,resolution,re_fragments,subset_chromosomes,running_mode,timing)
+        #quasar_makePartition(outdir,nodes,resolution,re_fragments,subset_chromosomes,running_mode,timing,parameters)
         #create hifive datasets from original files (genomewide)
-        quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing)
+        quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,running_mode,timing,parameters,resolution,nodes)
 
     if 'GenomeDISCO' in methods_list or 'HiCRep' in methods_list or 'HiC-Spector' in methods_list or "all" in methods_list:
         #split the data into chromosomes
@@ -206,7 +212,7 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
             script_nodes.write("zcat -f "+nodes+' | sort -k1,1 -k2,2n | awk \'{print "chr"$1"\\t"$2"\\t"$3"\\t"$4"\\tincluded"}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome) print $0}\' | gzip > '+nodefile+'\n')
             script_nodes.write('rm '+script_nodes_file+'*'+'\n')
             script_nodes.close()
-            run_script(script_nodes_file,running_mode)
+            run_script(script_nodes_file,running_mode,parameters)
 
             #edges =====================
             for line in open(metadata_samples,'r').readlines():
@@ -226,9 +232,10 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
                 script_edges.write('zcat -f '+samplefile+' | awk \'{print "chr"$1"\\t"$2"\\tchr"$3"\\t"$4"\\t"$5}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome && $3==chromosome) print $2"\\t"$4"\\t"$5}\' | gzip > '+edgefile+'\n')
                 script_edges.write('rm '+script_edges_file+'*'+'\n')
                 script_edges.close()
-                run_script(script_edges_file,running_mode)
+                run_script(script_edges_file,running_mode,parameters)
 
-def run_script(script_name,running_mode):
+def run_script(script_name,running_mode,parameters):
+
     subp.check_output(['bash','-c','chmod 755 '+script_name])
     if running_mode=='NA':
         #print script_name+'.timed'
@@ -239,16 +246,12 @@ def run_script(script_name,running_mode):
     if running_mode=='write_script':
         pass
     if running_mode=='sge':
-        memo='5G'
-        #print 'qsub -l hostname=*scg4*.local -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name
-        output=subp.check_output(['bash','-c','qsub -l hostname=*scg4*.local -l h_vmem='+memo+' -o '+script_name+'.o -e '+script_name+'.e '+script_name])
+        output=subp.check_output(['bash','-c','qsub '+re.sub('"','',parameters['SGE']['text'])+' -o '+script_name+'.o -e '+script_name+'.e '+script_name])
+        #print 'qsub '+re.sub('"','',parameters['SGE']['text'])+' -o '+script_name+'.o -e '+script_name+'.e '+script_name
         print output
-    #TODO: if you choose slurm, then you need to change the settings and provide a file with settings
     if running_mode=='slurm':
-        print 'here in slurm'
-        memo='50G'
-        partition='akundaje'
-        output=subp.check_output(['bash','-c','sbatch --mem '+memo+' -o '+script_name+'.o -e '+script_name+'.e'+' -p '+partition+' '+script_name])
+        output=subp.check_output(['bash','-c','sbatch '+re.sub('"','',parameters['slurm']['text'])+' -o '+script_name+'.o -e '+script_name+'.e'+' '+script_name])
+        print output
 
 def read_parameters_file(parameters_file):
     if parameters_file=="NA":
@@ -286,7 +289,7 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,ti
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_combine_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
     script_comparison.write('rm '+outpath+'\n')
     script_comparison.close()
-    run_script(script_comparison_file,running_mode)
+    run_script(script_comparison_file,running_mode,parameters)
 
 def quasar_qc_wrapper(outdir,parameters,samplename,running_mode,timing):
     script_comparison_file=outdir+'/scripts/QuASAR-QC/'+samplename+'/'+samplename+'.QuASAR-QC.sh'
@@ -308,7 +311,7 @@ def quasar_qc_wrapper(outdir,parameters,samplename,running_mode,timing):
     script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform+' -o '+outpath+' '+timing_text2+'\n')
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes_qc.py"+' '+outpath+' '+samplename+'\n')
     script_comparison.close()
-    run_script(script_comparison_file,running_mode)
+    run_script(script_comparison_file,running_mode,parameters)
 
 def HiCRep_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,resolution,all_scores,timing):
     cmdlist=[]
@@ -496,9 +499,10 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
     scripts_to_run.sort()
     for f in scripts_to_run:
         #add_cmds_to_file(['rm '+f],f)
-        run_script(f,running_mode)
+        run_script(f,running_mode,parameters)
 
 def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes,timing):
+    parameters=read_parameters_file(parameters_file)
     methods_list=methods.strip().split(',')
     if 'QuASAR-QC' in methods_list or 'all' in methods_list:
         #TODO: have fewer parameters for this function
@@ -507,7 +511,7 @@ def get_qc(metadata_samples,methods,parameters_file,outdir,running_mode,concise_
             samplename=items[0]
             samplefile=items[1]
             print strftime("%c")+'\n'+'running QuASAR-QC | computing QC for '+samplename
-            quasar_qc_wrapper(outdir,None,samplename,running_mode,timing)
+            quasar_qc_wrapper(outdir,parameters,samplename,running_mode,timing)
 
 def summary(metadata_samples,metadata_pairs,bins,re_fragments,methods,parameters_file,outdir,running_mode,concise_analysis,subset_chromosomes):
     methods_list=methods.split(',')
