@@ -103,10 +103,12 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 #======
 ${pythondir}/pip install h5py
 ${pythondir}/conda install -c anaconda mpi4py
-git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
-cd ${repo_dir}/software/hifive
-git checkout v1.5.3
-${pythondir}/python setup.py install
+${pythondir}/pip install hifive==1.5.4
+#git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
+#cd ${repo_dir}/software/hifive
+#git checkout v1.5.4
+#${pythondir}/python setup.py clean
+#${pythondir}/python setup.py install
 
 #==================
 #make a bashrc file

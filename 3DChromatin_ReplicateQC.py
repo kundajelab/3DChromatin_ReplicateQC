@@ -150,7 +150,7 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
         script_forquasar.write('${mypython} -c "import hifive; hic=hifive.HiC(\''+quasar_project+'\',\'w\'); hic.load_data(\''+quasar_output+'\'); hic.save()"'+'\n')
 
         #quasar tranformation        
-        script_forquasar.write(repo_dir+'/software/hifive/bin/hifive quasar -p '+quasar_project+' '+quasar_transform+' -r '+rebinning+' -d 0'+'\n')
+        script_forquasar.write('${myhifive} quasar -p '+quasar_project+' '+quasar_transform+' -r '+rebinning+' -d 0'+'\n')
 
         #plot the quasar transformation
         #script_forquasar.write('${mypython} '+repo_dir+'/wrappers/QuASAR/plot_quasar_transform.py --transform '+quasar_transform+' --out '+quasar_transform+'\n')
@@ -283,7 +283,7 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,ti
         timing_file=outdir+'/timing/QuASAR-Rep/QuASAR-Rep.'+samplename1+'.'+samplename2+'.timing.txt'
         timing_text1='{ time '
         timing_text2='; } 2> '+timing_file
-    script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
+    script_comparison.write(timing_text1+"${myhifive} quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_combine_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
@@ -308,7 +308,7 @@ def quasar_qc_wrapper(outdir,parameters,samplename,running_mode,timing):
         timing_file=outdir+'/timing/QuASAR-QC/QuASAR-QC.'+samplename+'.timing.txt'
         timing_text1='{ time '
         timing_text2='; } 2> '+timing_file
-    script_comparison.write(timing_text1+repo_dir+"/software/hifive/bin/hifive quasar"+' '+quasar_transform+' -o '+outpath+' '+timing_text2+'\n')
+    script_comparison.write(timing_text1+"${myhifive} quasar"+' '+quasar_transform+' -o '+outpath+' '+timing_text2+'\n')
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_split_by_chromosomes_qc.py"+' '+outpath+' '+samplename+'\n')
     script_comparison.close()
     run_script(script_comparison_file,running_mode,parameters)
