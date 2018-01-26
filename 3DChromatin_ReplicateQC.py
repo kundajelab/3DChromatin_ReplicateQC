@@ -394,7 +394,7 @@ def GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplenam
             cmd=timing_text1+"$mypython "+repo_dir+"/software/genomedisco/genomedisco/compute_reproducibility.py"+" --m1 "+f1+" --m2 "+f2+" --m1name "+samplename1+" --m2name "+samplename2+" --node_file "+nodefile+" --outdir "+outpath+" --outpref "+chromo+" --m_subsample "+subsampling+" --approximation 10000000 --norm "+parameters['GenomeDISCO']['norm']+" --method RandomWalks "+" --tmin "+parameters['GenomeDISCO']['tmin']+" --tmax "+parameters['GenomeDISCO']['tmax']+concise_analysis_text+scoresByStep_text+removeDiag_text+transition_text+' '+timing_text2
             cmdlist.append(cmd)
             cmdlist.append('cat '+outpath+'/'+chromo+'.'+samplename1+'.vs.'+samplename2+".scores.txt | awk -v chromosome="+chromo+" '{print "+'$1"\\t"$2"\\t"chromosome"\\t"$3}\' >> '+all_scores)
-            return cmdlist
+    return cmdlist
 
 def add_cmds_to_file(cmds,cmds_filename):
     if os.path.exists(cmds_filename):
@@ -470,7 +470,8 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
             if "GenomeDISCO" in methods_list or "all" in methods_list:
                 scripts_to_run.add(cmds_file['GenomeDISCO'])
                 GenomeDISCO_cmds=GenomeDISCO_wrapper(outdir,parameters,concise_analysis,samplename1,samplename2,chromo,running_mode,f1,f2,nodefile,GenomeDISCO_scores,timing)
-                add_cmds_to_file(GenomeDISCO_cmds,cmds_file['GenomeDISCO'])
+                add_cmds_to_file(GenomeDISCO_cmds,cmds_file['GenomeDISCO'])           
+                
 
             if "HiCRep" in methods_list or "all" in methods_list:
                 scripts_to_run.add(cmds_file['HiCRep'])

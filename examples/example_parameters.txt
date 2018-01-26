@@ -9,5 +9,5 @@ HiCRep|h	5
 HiCRep|maxdist	5000000
 HiC-Spector|n	20
 QuASAR|rebinning	resolution
-SGE|text	"-l h_vmem=3G"
+SGE|text	"-l h_vmem=10G"
 slurm|text	"--mem 3G"
