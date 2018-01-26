@@ -133,13 +133,13 @@ def quasar_makeDatasets(metadata_samples,outdir,subset_chromosomes,rebinning,run
         quasar_transform=quasar_data+'/'+samplename+'.quasar_transform'
         if subset_chromosomes=='NA':
             #all chromosomes                                                                                
-            script_forquasar.write('zcat -f  '+samplefile+' | sed \'s/chr//g\' | awk \'{print "chr"$1"\\t"$2"\\tchr"$3"\\t"$4"\\t"$5}\' | gzip > '+full_dataset+'\n')
+            script_forquasar.write('gunzip -c  '+samplefile+' | sed \'s/chr//g\' | awk \'{print "chr"$1"\\t"$2"\\tchr"$3"\\t"$4"\\t"$5}\' | gzip > '+full_dataset+'\n')
         else:
             script_forquasar.write('if [ ! '+full_dataset+'.tmp ];then rm '+full_dataset+'.tmp;fi'+'\n')
             for chromosome in subset_chromosomes.split(','):
                 #TODO: keep inter-chromosomals                                                              
-                script_forquasar.write('zcat -f  '+samplefile+' | awk \'{print "chr"$1"\t"$2"\tchr"$3"\t"$4"\t"$5}\' | sed \'s/chrchr/chr/g\' | awk -v chromo='+chromosome+' \'{if (($1==$3) && ($1==chromo)) print $0}\' >> '+full_dataset+'.tmp'+'\n')
-            script_forquasar.write('zcat -f  '+full_dataset+'.tmp | gzip > '+full_dataset+'\n')
+                script_forquasar.write('gunzip -c  '+samplefile+' | awk \'{print "chr"$1"\t"$2"\tchr"$3"\t"$4"\t"$5}\' | sed \'s/chrchr/chr/g\' | awk -v chromo='+chromosome+' \'{if (($1==$3) && ($1==chromo)) print $0}\' >> '+full_dataset+'.tmp'+'\n')
+            script_forquasar.write('gunzip -c  '+full_dataset+'.tmp | gzip > '+full_dataset+'\n')
             script_forquasar.write('rm '+full_dataset+'.tmp'+'\n')
 
         #make quasar dataset
@@ -177,7 +177,7 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
     subp.check_output(['bash','-c','mkdir -p '+outdir+'/results'])
     
     #make a list of all the chromosomes in the nodes file
-    subp.check_output(['bash','-c','zcat -f '+nodes+' | cut -f1 | sort | uniq | awk \'{print "chr"$0}\' | sed \'s/chrchr/chr/g\' | gzip > '+outdir+'/data/metadata/chromosomes.gz'])
+    subp.check_output(['bash','-c','gunzip -c '+nodes+' | cut -f1 | sort | uniq | awk \'{print "chr"$0}\' | sed \'s/chrchr/chr/g\' | gzip > '+outdir+'/data/metadata/chromosomes.gz'])
     #figure out resolution here and use it in the other steps
     resolution_file=outdir+'/data/metadata/resolution.txt'
     write_resolution(nodes,resolution_file)
@@ -209,7 +209,7 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
 
             print '3DChromatin_ReplicateQC | '+strftime("%c")+' | Splitting nodes '+chromo
 
-            script_nodes.write("zcat -f "+nodes+' | sort -k1,1 -k2,2n | awk \'{print "chr"$1"\\t"$2"\\t"$3"\\t"$4"\\tincluded"}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome) print $0}\' | gzip > '+nodefile+'\n')
+            script_nodes.write("gunzip -c "+nodes+' | sort -k1,1 -k2,2n | awk \'{print "chr"$1"\\t"$2"\\t"$3"\\t"$4"\\tincluded"}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome) print $0}\' | gzip > '+nodefile+'\n')
             script_nodes.write('rm '+script_nodes_file+'*'+'\n')
             script_nodes.close()
             run_script(script_nodes_file,running_mode,parameters)
@@ -229,7 +229,7 @@ def split_by_chromosome(metadata_samples,bins,re_fragments,methods,outdir,runnin
                 script_edges.write('. '+bashrc_file+'\n')
                 edgefile=outdir+'/data/edges/'+samplename+'/'+samplename+'.'+chromo+'.gz'
                 script_edges.write('mkdir -p '+os.path.dirname(edgefile)+'\n')
-                script_edges.write('zcat -f '+samplefile+' | awk \'{print "chr"$1"\\t"$2"\\tchr"$3"\\t"$4"\\t"$5}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome && $3==chromosome) print $2"\\t"$4"\\t"$5}\' | gzip > '+edgefile+'\n')
+                script_edges.write('gunzip -c '+samplefile+' | awk \'{print "chr"$1"\\t"$2"\\tchr"$3"\\t"$4"\\t"$5}\' | sed \'s/chrchr/chr/g\' | awk -v chromosome='+chromo+' \'{if ($1==chromosome && $3==chromosome) print $2"\\t"$4"\\t"$5}\' | gzip > '+edgefile+'\n')
                 script_edges.write('rm '+script_edges_file+'*'+'\n')
                 script_edges.close()
                 run_script(script_edges_file,running_mode,parameters)
@@ -286,6 +286,7 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,ti
     script_comparison.write(timing_text1+"${myhifive} quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
+    script_comparison.write('sleep 10'+'\n')
     script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/quasar_combine_by_chromosomes.py"+' '+outpath+' '+samplename1+' '+samplename2+'\n')
     script_comparison.write('rm '+outpath+'\n')
     script_comparison.close()

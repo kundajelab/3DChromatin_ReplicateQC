@@ -25,7 +25,6 @@ class Encode_Fend(hifive.Fend):
             stop = int(temp[2])
             idx = int(temp[3])
             data[chrom].append((start, stop, idx))
-        print data
         input.close()
         chromosomes = data.keys()
         chromosomes.sort()

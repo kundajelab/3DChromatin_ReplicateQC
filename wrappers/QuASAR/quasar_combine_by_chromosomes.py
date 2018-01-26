@@ -21,6 +21,7 @@ def main():
     for i in range(3, len(header_line)):
         d[header_line[i]]=data_line[i]    
     outfile=open(os.path.dirname(sys.argv[1])+'/'+re.sub('QuASAR-QC','',re.sub('QuASAR-Rep.scores.','',os.path.basename(sys.argv[1]))),'w')
+    #print d
     for chromo, score in d.iteritems():
         outfile.write(re.sub('.quasar_transform','',sample1)+'\t'+re.sub('.quasar_transform','',sample2)+'\t'+'chr'+re.sub('chr','',str(chromo))+'\t'+score+'\n')
     outfile.close()

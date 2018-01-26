@@ -58,7 +58,7 @@ def main():
     args = parser.parse_args()
 
     nodes_modified_file=args.partition+'.tmp'
-    subp.check_output(['bash','-c','zcat -f '+args.nodes+' | sort -k1,1 -k2,2n | gzip > '+nodes_modified_file+'.sorted'])
+    subp.check_output(['bash','-c','gunzip -c '+args.nodes+' | sort -k1,1 -k2,2n | gzip > '+nodes_modified_file+'.sorted'])
     nodes_modified=open(nodes_modified_file,'w')
     for line in gzip.open(nodes_modified_file+'.sorted','r'):
         items=line.strip().split('\t')
