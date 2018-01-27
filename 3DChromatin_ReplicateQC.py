@@ -283,7 +283,7 @@ def QuASAR_rep_wrapper(outdir,parameters,samplename1,samplename2,running_mode,ti
         timing_file=outdir+'/timing/QuASAR-Rep/QuASAR-Rep.'+samplename1+'.'+samplename2+'.timing.txt'
         timing_text1='{ time '
         timing_text2='; } 2> '+timing_file
-    script_comparison.write(timing_text1+"${myhifive} quasar"+' '+quasar_transform1+' -Q '+quasar_transform2+' -o '+outpath+' -d 0'+timing_text2+'\n') 
+    script_comparison.write(timing_text1+"${myhifive} quasar"+' -f -Q '+quasar_transform2+' -o '+outpath+' -d 0'+' '+quasar_transform1+timing_text2+'\n') 
     #script_comparison.write('${mypython} '+repo_dir+"/wrappers/QuASAR/plot_quasar_scatter.py"+' '+quasar_transform1+' '+quasar_transform2+' '+outpath+'\n')
     #split the scores by chromosomes
     script_comparison.write('sleep 10'+'\n')
@@ -490,11 +490,11 @@ def compute_reproducibility(metadata_pairs,methods,parameters_file,outdir,runnin
                 if chromo not in subset_chromosomes.split(','):
                     continue
             if "GenomeDISCO" in methods_list or "all" in methods_list:
-                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['GenomeDISCO'])
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/GenomeDISCO/'+chromo+'.*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['GenomeDISCO'])
             if "HiCRep" in methods_list or "all" in methods_list:
-                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiCRep'])
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiCRep/'+chromo+'.*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiCRep'])
             if "HiC-Spector" in methods_list or "all" in methods_list:
-                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/'+chromo+'*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiC-Spector'])
+                add_cmds_to_file(['rm '+outdir+'/results/reproducibility/HiC-Spector/'+chromo+'.*'+samplename1+'.vs.'+samplename2+'*scores.txt'],cmds_file['HiC-Spector'])
 
     #run scripts ==========================
     scripts_to_run=list(scripts_to_run)
