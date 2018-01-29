@@ -40,8 +40,19 @@ def main():
     args = parser.parse_args()
     
     nodes,nodes_idx,blacklist_nodes=processing.read_nodes_from_bed(args.node_file,'NA')
-    m1=processing.construct_csr_matrix_from_data_and_nodes(args.m1,nodes,blacklist_nodes,True)
-    m2=processing.construct_csr_matrix_from_data_and_nodes(args.m2,nodes,blacklist_nodes,True)
+    m1_csr=processing.construct_csr_matrix_from_data_and_nodes(args.m1,nodes,blacklist_nodes,False)
+    m2_csr=processing.construct_csr_matrix_from_data_and_nodes(args.m2,nodes,blacklist_nodes,False)
+
+    m1up=m1_csr
+    m1down=m1up.transpose()
+    m1down.setdiag(0)
+    m1=m1up+m1down
+
+    m2up=m2_csr
+    m2down=m2up.transpose()
+    m2down.setdiag(0)
+    m2=m2up+m2down
+
     sys.stdout = open(args.out, 'w')
     get_reproducibility(m1,m2,args.num_evec)
 
