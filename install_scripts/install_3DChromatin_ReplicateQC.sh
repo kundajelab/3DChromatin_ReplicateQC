@@ -104,6 +104,7 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 ${pythondir}/pip install h5py
 ${pythondir}/conda install -c anaconda mpi4py
 ${pythondir}/pip install hifive==1.5.6
+#latest version is 1.5.6
 #git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 #cd ${repo_dir}/software/hifive
 #git checkout v1.5.4
