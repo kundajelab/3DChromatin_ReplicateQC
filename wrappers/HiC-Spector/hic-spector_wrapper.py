@@ -1,10 +1,11 @@
-
+from __future__ import print_function
 import argparse
 import copy
 import re
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))+"/software/HiC-spector/")
+print(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))+"/software/HiC-spector/")
 from time import gmtime, strftime
 from genomedisco import data_operations, processing, visualization
 
@@ -27,7 +28,7 @@ def tryimport(name, globals={}, locals={}, fromlist=[], level=-1):
 realimport, __builtin__.__import__ = __builtin__.__import__, tryimport
 #=======================================
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))+"/software/HiC-spector/")
-from run_reproducibility import get_Laplacian, evec_distance, get_ipr, get_reproducibility 
+from run_reproducibility_v2 import get_Laplacian, evec_distance, get_ipr, get_reproducibility 
 import StringIO
 
 def main():
@@ -57,3 +58,4 @@ def main():
     get_reproducibility(m1,m2,args.num_evec)
 
 main()
+
