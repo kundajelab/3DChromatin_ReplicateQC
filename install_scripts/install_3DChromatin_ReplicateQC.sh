@@ -91,7 +91,7 @@ fi
 
 #download hicrep from the paper
 cd ${repo_dir}/software/
-wget http://genome.cshlp.org/content/suppl/2017/10/06/gr.220640.117.DC1/Supplemental_hicrep_1.0.1.tar.gz 
+wget --no-check-certificate http://genome.cshlp.org/content/suppl/2017/10/06/gr.220640.117.DC1/Supplemental_hicrep_1.0.1.tar.gz 
 cmd="${PATHTOR}script ${dir_of_script}/install_R_packages.R"
 eval "${cmd}"
 

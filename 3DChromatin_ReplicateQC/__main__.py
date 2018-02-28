@@ -3,7 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
-from software.genomedisco.genomedisco import concordance_utils
+#from software.genomedisco.genomedisco import concordance_utils
 
 def main():
     command_methods = {'preprocess': concordance_utils.preprocess,
