@@ -9,7 +9,6 @@ OPTIONS
    --pathtopython   Path to python. DEFAULT: python
    --pathtor        Path to R. DEFAULT: R
    --rlib           Path to R libraries. DEFAULT=''
-   --pathtobedtools Path to bedtools. DEFAULT=bedtools
    --modules        Names of modules to be loaded. Comma-delimited. This can be used on computing clusters with shared installations, and will be loaded as 'module load modulename'. DEFAULT=''
 
 EOF
@@ -22,7 +21,6 @@ ARGS=`getopt -o "h" -l "pathtopython:,pathtor:,rlib:,pathtobedtools:,modules:" -
 PATHTOPYTHON="python"
 PATHTOR="R"
 RLIB=""
-PATHTOBEDTOOLS=""
 MODULES=""
 
 while [ $# -gt 0 ]; do
@@ -31,7 +29,6 @@ while [ $# -gt 0 ]; do
     --pathtopython) PATHTOPYTHON=$2; shift 2;;
     --pathtor) PATHTOR=$2; shift 2;;
     --rlib) RLIB=$2; shift 2;;
-    --pathtobedtools) PATHTOBEDTOOLS=$2; shift 2;;
     --modules) MODULES=$2; shift 2;;
     *) usage; exit 1;;
     esac          
@@ -60,16 +57,13 @@ pythondir=${pythondir}/bin
 #get genomedisco
 #===================
 git clone https://github.com/kundajelab/genomedisco.git ${repo_dir}/software/genomedisco
+cd ${repo_dir}/software
+${pythondir}/pip install --editable genomedisco
+
 rlibtext=""
 if [[ ${RLIB} != "" ]];
 then
     rlibtext="--rlib ${RLIB}"
-fi
-
-bedtoolstext=""
-if [[ ${PATHTOBEDTOOLS} != "" ]];
-then
-    bedtoolstext="--pathtobedtools ${PATHTOBEDTOOLS}"
 fi
 
 modulestext=""
@@ -116,9 +110,6 @@ ${pythondir}/pip install hifive==1.5.6
 #==================
 mkdir -p ${repo_dir}/configuration_files
 bashrc_file=${repo_dir}/configuration_files/bashrc.configuration
-echo "CODEDIR=${repo_dir}/software/genomedisco" > ${bashrc_file}
-echo "mypython=${PATHTOPYTHON}" >> ${bashrc_file}
-echo "export PYTHONPATH=\""'$'"{PYTHONPATH}:"'$'"{CODEDIR}:"'$'"{CODEDIR}/genomedisco/comparison_types/\"" >> ${bashrc_file}
 
 #add any module load commands
 for modulename in $(echo ${MODULES} | sed 's/,/ /g');
@@ -133,8 +124,4 @@ then
     echo "export R_LIBS_USER="'$'"{R_LIBS}" >> ${bashrc_file}
 fi
 
-#point to bedtools
-echo "mybedtools=${PATHTOBEDTOOLS}" >> ${bashrc_file}
-
-#point to hifive
-echo "myhifive=${pythondir}/hifive" >> ${bashrc_file}
+echo "pathtor=${PATHTOR}" >> ${bashrc_file}
