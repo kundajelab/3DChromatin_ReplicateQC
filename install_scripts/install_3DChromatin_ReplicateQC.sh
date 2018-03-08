@@ -60,6 +60,9 @@ git clone https://github.com/kundajelab/genomedisco.git ${repo_dir}/software/gen
 cd ${repo_dir}/software
 ${pythondir}/pip install --editable genomedisco
 
+touch ${repo_dir}/software/__init__.py
+touch ${repo_dir}/software/genomedisco/__init__.py
+
 rlibtext=""
 if [[ ${RLIB} != "" ]];
 then
