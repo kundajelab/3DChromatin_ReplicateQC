@@ -1,5 +1,5 @@
 3DChromatin_ReplicateQC
-===
+1;95;0c===
 Welcome! This repository will allow you to measure the quality and reproducibility of 3D genome data.
 It computes the following:
 
@@ -20,10 +20,15 @@ Installation
 
 1. Install [Anaconda2](https://www.continuum.io/downloads), which contains python as well as a set of commonly used packages. 3DChromatin_ReplicateQC is compatible with Python 2.
 
-2. Run the following installation commands:
+2. First clone the repository:
 
 ```
 git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
+```
+
+Then the following installation commands:
+
+```
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh
 pip install --editable 3DChromatin_ReplicateQC/
 ```
