@@ -26,7 +26,7 @@ Installation
 git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
 ```
 
-Then the following installation commands:
+Then, run the following installation commands:
 
 ```
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh
@@ -40,7 +40,7 @@ Assume the following:
 - path to your R libraries is `/home/my_R_libraries`
 - you wish to load any modules that could be loaded as `module load <module name>`
 
-Then, your installation command would look like:
+Then, your installation commands would look as below:
 ```
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --modules module1,module2` 
 pip install --editable 3DChromatin_ReplicateQC/
