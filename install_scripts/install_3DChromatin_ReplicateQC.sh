@@ -51,14 +51,21 @@ do
     module load ${modulename}
 done
 
-pythondir=$(dirname ${PATHTOPYTHON} | sed 's/\/bin\/$//g' | sed 's/\/bin$//g' )
-pythondir=${pythondir}/bin
+if [[ ${PATHTOPYTHON} != "python" ]];
+then
+    pythondir=$(dirname ${PATHTOPYTHON} | sed 's/\/bin\/$//g' | sed 's/\/bin$//g' )
+    pythondir=${pythondir}/bin/
+else
+    pythondir=""
+fi
+
+echo "pythondir is ${pythondir}"
 
 #get genomedisco
 #===================
 git clone https://github.com/kundajelab/genomedisco.git ${repo_dir}/software/genomedisco
 cd ${repo_dir}/software
-${pythondir}/pip install --editable genomedisco
+${pythondir}pip install --editable genomedisco
 
 touch ${repo_dir}/software/__init__.py
 touch ${repo_dir}/software/genomedisco/__init__.py
@@ -98,9 +105,9 @@ git clone https://github.com/gersteinlab/HiC-spector ${repo_dir}/software/HiC-sp
 
 #QuASAR
 #======
-${pythondir}/pip install h5py
-${pythondir}/conda install -c anaconda mpi4py
-${pythondir}/pip install hifive==1.5.6
+${pythondir}pip install h5py
+${pythondir}conda install -c anaconda mpi4py
+${pythondir}pip install hifive==1.5.6
 #latest version is 1.5.6
 #git clone https://github.com/bxlab/hifive ${repo_dir}/software/hifive
 #cd ${repo_dir}/software/hifive

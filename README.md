@@ -24,21 +24,20 @@ Installation
 
 ```
 git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
-cd 3DChromatin_ReplicateQC
-install_scripts/install_3DChromatin_ReplicateQC.sh
+3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh
+pip install --editable 3DChromatin_ReplicateQC/
 ```
-**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library, modules and bedtools installation. Thus, you can run the above script as described in the following example.
+**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library and modules. Thus, you can run the above script as described in the following example.
 
 Assume the following:
 - path to your anaconda installation of python is `/home/my_anaconda2/bin/python`
 - path to your R installation is `/home/my_R/bin/R`
 - path to your R libraries is `/home/my_R_libraries`
-- path to your bedtools installation is `/home/my_bedtools/bin/bedtools`
 - you wish to load any modules that could be loaded as `module load <module name>`
 
 Then, your installation command would look like:
 ```
-install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --pathtobedtools /home/my_bedtools/bin/bedtools --modules module1,module2` 
+3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --modules module1,module2` 
 ```
 
 Quick start
@@ -48,13 +47,14 @@ Say you want to compare 2 contact maps. For this example, we will use a subset o
 First, configure the files used in the example:
 
 ```
-examples/configure_example.sh
+3DChromatin_ReplicateQC/examples/configure_example.sh
 ```
 
 Then run all methods (both QC and reproducibility as follows):
 
 ```
-python 3DChromatin_ReplicateQC.py run_all --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Nodes.w40000.bed.gz --outdir examples/output 
+cd 3DChromatin_ReplicateQC
+3DChromatin_ReplicateQC run_all --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output 
 ```
 
 Output
@@ -159,13 +159,13 @@ Running 3DChromatin_ReplicateQC step by step
 
 **3DChromatin_ReplicateQC steps**
 
-**split**
+**preprocess**
 
-Splits by chromosome all datasets provided in `--metadata_samples`.
+Preprocesses all datasets provided in `--metadata_samples`.
 
 Example command: 
 ```
-python 3DChromatin_ReplicateQC.py split --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output
+3DChromatin_ReplicateQC preprocess --metadata_samples examples/metadata.samples --bins examples/Bins.w40000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
 ```
 
 **qc**
@@ -174,16 +174,16 @@ Runs QC methods on all samples provided in `--metadata_samples`. Note that this 
 
 Example command: 
 ```
-python 3DChromatin_ReplicateQC.py qc --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC --parameters_file examples/example_parameters.txt
+3DChromatin_ReplicateQC qc --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC
 ```
 
-**reproducibility**
+**concordance**
 
 Runs reproducibility methods on all samples pairs provided in `--metadata_pairs`. Note that the only methods that can be run with this step are: GenomeDISCO, HiCRep, HiC-Spector and QuASAR-Rep. If QuASAR-QC is provided here, it will not be run. 
 
 Example command: 
 ```
-python 3DChromatin_ReplicateQC.py reproducibility --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep --parameters_file examples/example_parameters.txt
+3DChromatin_ReplicateQC concordance --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep 
 ```
 
 **summary**
@@ -192,7 +192,7 @@ Summarizes scores across all comparisons.
 
 Example command: 
 ```
-python 3DChromatin_ReplicateQC.py summary --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Nodes.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
+3DChromatin_ReplicateQC summary --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
 ```
 
 **cleanup**
@@ -201,7 +201,7 @@ Clean up superfluous files, leaving only the scores.
 
 Example command: 
 ```
-python 3DChromatin_ReplicateQC.py cleanup --outdir examples/output
+3DChromatin_ReplicateQC cleanup --outdir examples/output
 ```
 
 Running this code with job submission engines
@@ -214,11 +214,11 @@ Then, run the steps sequentially (that is, wait for all jobs of a given step to 
 
 For instance, an example analysis workflow for SGE would be:
 ```
-python 3DChromatin_ReplicateQC.py split --running_mode sge --metadata_samples examples/metadata.samples --bins examples/Nodes.w40000.bed.gz --outdir examples/output 
-python 3DChromatin_ReplicateQC.py qc --running_mode sge --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC --parameters_file examples/example_parameters.txt
-python 3DChromatin_ReplicateQC.py reproducibility --running_mode sge --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep --parameters_file examples/example_parameters.txt
-python 3DChromatin_ReplicateQC.py summary --running_mode sge --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Nodes.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
-python 3DChromatin_ReplicateQC.py cleanup --running_mode sge --outdir examples/output
+3DChromatin_ReplicateQC preprocess --running_mode sge --metadata_samples examples/metadata.samples --bins examples/Bins.w40000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
+3DChromatin_ReplicateQC qc --running_mode sge --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC
+3DChromatin_ReplicateQC concordance --running_mode sge --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep
+3DChromatin_ReplicateQC summary --running_mode sge --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
+3DChromatin_ReplicateQC cleanup --running_mode sge --outdir examples/output
 ```
 
 Similarly, for slurm, change sge to slurm for the `--running_mode`.
