@@ -26,13 +26,12 @@ Installation
 git clone http://github.com/kundajelab/3DChromatin_ReplicateQC
 ```
 
-Then, run the following installation commands:
+Then, run the following installation command:
 
 ```
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh
-pip install --editable 3DChromatin_ReplicateQC/
 ```
-**Note if you are installing these locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library and modules. Thus, you can run the above as described in the following example.
+**Note if you are installing locally**: There are a few parameters you can provide to the installation script, to point it to your desired python installation (where you installed anaconda, e.g. `/home/anaconda/bin/python`), R installation, R library and modules. Thus, you can run the above as described in the following example.
 
 Assume the following:
 - path to your anaconda installation of python is `/home/my_anaconda2/bin/python`
@@ -43,7 +42,6 @@ Assume the following:
 Then, your installation commands would look as below:
 ```
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --modules module1,module2` 
-pip install --editable 3DChromatin_ReplicateQC/
 ```
 
 Quick start
