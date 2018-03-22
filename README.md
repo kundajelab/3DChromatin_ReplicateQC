@@ -1,5 +1,5 @@
 3DChromatin_ReplicateQC
-1;95;0c===
+===
 Welcome! This repository will allow you to measure the quality and reproducibility of 3D genome data.
 It computes the following:
 
