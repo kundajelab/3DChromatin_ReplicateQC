@@ -44,6 +44,8 @@ Then, your installation commands would look as below:
 3DChromatin_ReplicateQC/install_scripts/install_3DChromatin_ReplicateQC.sh --pathtopython /home/my_anaconda2/bin/python --pathtor /home/my_R/bin/R --rlib /home/my_R_libraries --modules module1,module2` 
 ```
 
+Note that to call `3DChromatin_ReplicateQC` you will need to use the full path to it, which will be in the example above `/home/my_anaconda2/bin/3DChromatin_ReplicateQC`, rather than simply `3DChromatin_ReplicateQC`.
+
 Quick start
 ====
 

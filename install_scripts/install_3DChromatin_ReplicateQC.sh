@@ -59,8 +59,6 @@ else
     pythondir=""
 fi
 
-echo "pythondir is ${pythondir}"
-
 #get genomedisco
 #===================
 
