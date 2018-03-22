@@ -7,6 +7,7 @@ from software.genomedisco.genomedisco import concordance_utils
 
 def main():
     command_methods = {'preprocess': concordance_utils.preprocess,
+                        'qc': concordance_utils.get_qc,
                          'concordance': concordance_utils.concordance,
                          'summary': concordance_utils.summary,
                          'cleanup':concordance_utils.clean_up,
