@@ -60,7 +60,7 @@ Then run all methods (both QC and reproducibility as follows):
 
 ```
 cd 3DChromatin_ReplicateQC
-3DChromatin_ReplicateQC run_all --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output 
+3DChromatin_ReplicateQC run_all --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w50000.bed.gz --outdir examples/output 
 ```
 
 Output
@@ -171,7 +171,7 @@ Preprocesses all datasets provided in `--metadata_samples`.
 
 Example command: 
 ```
-3DChromatin_ReplicateQC preprocess --metadata_samples examples/metadata.samples --bins examples/Bins.w40000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
+3DChromatin_ReplicateQC preprocess --metadata_samples examples/metadata.samples --bins examples/Bins.w50000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
 ```
 
 **qc**
@@ -198,7 +198,7 @@ Summarizes scores across all comparisons.
 
 Example command: 
 ```
-3DChromatin_ReplicateQC summary --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
+3DChromatin_ReplicateQC summary --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w50000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
 ```
 
 **cleanup**
@@ -220,10 +220,10 @@ Then, run the steps sequentially (that is, wait for all jobs of a given step to 
 
 For instance, an example analysis workflow for SGE would be:
 ```
-3DChromatin_ReplicateQC preprocess --running_mode sge --metadata_samples examples/metadata.samples --bins examples/Bins.w40000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
+3DChromatin_ReplicateQC preprocess --running_mode sge --metadata_samples examples/metadata.samples --bins examples/Bins.w50000.bed.gz --outdir examples/output --parameters_file examples/example_parameters.txt
 3DChromatin_ReplicateQC qc --running_mode sge --metadata_samples examples/metadata.samples --outdir examples/output --methods QuASAR-QC
 3DChromatin_ReplicateQC concordance --running_mode sge --metadata_pairs examples/metadata.pairs --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep
-3DChromatin_ReplicateQC summary --running_mode sge --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w40000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
+3DChromatin_ReplicateQC summary --running_mode sge --metadata_samples examples/metadata.samples --metadata_pairs examples/metadata.pairs --bins examples/Bins.w50000.bed.gz --outdir examples/output --methods GenomeDISCO,HiCRep,HiC-Spector,QuASAR-Rep,QuASAR-QC
 3DChromatin_ReplicateQC cleanup --running_mode sge --outdir examples/output
 ```
 
