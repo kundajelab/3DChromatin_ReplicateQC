@@ -67,6 +67,14 @@ Output
 ======
 The scores are summarized in the output directory under `scores/`.
 
+**Notes about the genomewide scores**
+
+Note that the genomewide scores are computed as follows:
+- for HiCRep, GenomeDISCO and HiC-Spector: the genomewide score is the average of the scores across all chromosomes
+- QuASAR-Rep, QuASAR-QC: the genomewide score is computed by considering all intra-chromosomal contacts in all chromosomes at once. Thus, this genomewide score is NOT equal to the average of the scores obtained for each individual chromosome.
+
+Also note that the genomewide scores are computed considering all chromosomes by default. If the option `--subset_chromosomes` is used, then the genomewide score refers to the genomewide score obtained by considering only the subset of chromosomes specified in `--subset_chromosomes`.
+
 Inputs
 =============
 Before running 3DChromatin_ReplicateQC, make sure to have the following files:

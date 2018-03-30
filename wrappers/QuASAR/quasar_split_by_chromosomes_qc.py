@@ -18,7 +18,7 @@ def main():
     header_line = lines[header].rstrip('\n').split('\t')
     data_line = lines[header + 1].rstrip('\n').split('\t')
     d={}
-    for i in range(3, len(header_line)):
+    for i in range(2, len(header_line)):
         d[header_line[i]]=data_line[i]
     for chromo, score in d.iteritems():
         outfile=open(os.path.dirname(sys.argv[1])+'/'+'chr'+chromo+'.'+re.sub('.QuASAR-QC','',re.sub('.QuASAR-Rep.','',os.path.basename(sys.argv[1]))),'w')
