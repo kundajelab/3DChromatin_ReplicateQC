@@ -2,18 +2,19 @@ args=commandArgs(trailingOnly=TRUE)
 
 require("hicrep")
 require("reshape2")
+
 #=============================
 
 testing=function(){
-	f1='/oak/stanford/groups/akundaje/oursu/code/forencode/3DChromatin_ReplicateQC/examples/output_test/data/edges/HIC001/HIC001.chr21.gz'
-	f2='/oak/stanford/groups/akundaje/oursu/code/forencode/3DChromatin_ReplicateQC/examples/output_test/data/edges/HIC002/HIC002.chr21.gz'
+	f1='/ahg/regevdata/users/oursu/code/3DChromatin_ReplicateQC/examples/output_test/data/edges/HIC001/HIC001.chr21.gz'
+	f2='/ahg/regevdata/users/oursu/code/3DChromatin_ReplicateQC/examples/output_test/data/edges/HIC002/HIC002.chr21.gz'
 	out='test'
 	c1=1
 	c2=2
 	c3=3
 	maxdist=5000000
 	resol=40000
-	nodefile='/oak/stanford/groups/akundaje/oursu/code/forencode/3DChromatin_ReplicateQC/examples/output_test/data/nodes/nodes.chr21.gz'
+	nodefile='/ahg/regevdata/users/oursu/code/3DChromatin_ReplicateQC/examples/output_test/data/nodes/nodes.chr21.gz'
 	h=5
 	m1name='m1'
 	m2name='m2'
@@ -83,12 +84,14 @@ m2_big[which(is.na(m2_big))]=0
 #Pre_HiC <- prep(m1_big, m2_big, resol, h, maxdist)
 # compute score
 #SCC.out = get.scc(Pre_HiC, resol, maxdist)
+#old code
+#SCC.out = get.scc(m1_big[,-c(1:3)], m2_big[,-c(1:3)], resol, h, 0, maxdist)
+#print('here')
 
 #new code
 #========
-#sessionInfo()
-SCC.out = get.scc(m1_big[,-c(1:3)], m2_big[,-c(1:3)], resol, h, 0, maxdist)
-#print('here')
+processed <- prep(m1_big, m2_big, resol, h, maxdist)
+SCC.out = get.scc(processed, resol, maxdist)
 
 # write score
 scores=data.frame(M1=m1name,M2=m2name,score=round(SCC.out[['scc']],3),sd=SCC.out[['std']])

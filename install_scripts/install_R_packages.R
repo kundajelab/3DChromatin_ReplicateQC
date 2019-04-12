@@ -9,4 +9,8 @@ install.packages("testthat",lib=.libPaths()[1],repos="http://cran.rstudio.com/")
 install.packages("reshape2",lib=.libPaths()[1],repos="http://cran.rstudio.com/")
 install.packages("pheatmap",lib=.libPaths()[1],repos="http://cran.rstudio.com/")
 
-install.packages("Supplemental_hicrep_1.0.1.tar.gz",dependencies="logical")
+#hicrep from the hicrep paper
+#install.packages("Supplemental_hicrep_1.0.1.tar.gz",dependencies="logical")
+
+#install newest hicrep
+biocLite("hicrep", lib=.libPaths()[1])
