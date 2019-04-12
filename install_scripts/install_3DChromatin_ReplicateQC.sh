@@ -69,6 +69,8 @@ echo "========================================================================"
 echo "========================================================================"
 git clone https://github.com/kundajelab/genomedisco.git ${repo_dir}/software/genomedisco
 cd ${repo_dir}/software
+${pythondir}pip install sklearn
+${pythondir}pip install psutil
 ${pythondir}pip install --editable genomedisco
 
 touch ${repo_dir}/software/__init__.py
